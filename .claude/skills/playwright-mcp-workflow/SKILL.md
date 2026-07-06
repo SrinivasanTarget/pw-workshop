@@ -1,6 +1,6 @@
 ---
 name: playwright-mcp-workflow
-description: The orchestrator - decide which surface to use for a Playwright task in Claude Code: the playwright-cli (Bash), the playwright-test browser MCP, a Test Agent (planner/generator/healer), or just editing files. Read this first when any Playwright task comes in.
+description: "The orchestrator - decide which surface to use for a Playwright task in Claude Code: the playwright-cli (Bash), the playwright-test browser MCP, a Test Agent (planner/generator/healer), or just editing files. Read this first when any Playwright task comes in."
 ---
 
 # Which surface for the job?

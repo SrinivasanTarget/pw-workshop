@@ -8,8 +8,8 @@ node_modules/
 /playwright/.cache/
 /playwright/.auth/
 
-# playwright-cli scratch snapshots
-.playwright-cli/
+# playwright-test MCP scratch snapshots
+.playwright-mcp/
 
 # Env & local Claude Code overrides
 .env

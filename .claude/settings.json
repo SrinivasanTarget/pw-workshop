@@ -8,8 +8,6 @@
   "permissions": {
     "allow": [
       "Bash(npx playwright:*)",
-      "Bash(playwright-cli:*)",
-      "Bash(npx playwright-cli:*)",
       "Bash(npm run:*)",
       "Bash(npm install)",
       "Bash(npm ci)",

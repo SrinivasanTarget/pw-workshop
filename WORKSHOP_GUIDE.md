@@ -82,7 +82,9 @@ Skills and the Test Agents then come online. Notes:
 
 The full stage-1 exercise set - instructor-led demos, a bunch of attendee exercises,
 and a capabilities checklist covering the whole MCP toolset - is in
-[`exercises/stage-1-mcp-exploration.md`](exercises/stage-1-mcp-exploration.md).
+[`exercises/stage-1-mcp-exploration.md`](exercises/stage-1-mcp-exploration.md). The
+**instructor answer key** (planted bugs, expected findings, data-test cheat sheet) is
+[`exercises/stage-1-answer-key.md`](exercises/stage-1-answer-key.md).
 
 ## Suggested 3-hour session flow
 
@@ -105,12 +107,17 @@ and a capabilities checklist covering the whole MCP toolset - is in
 
 ```bash
 playwright-cli open https://playwright-workshop.pages.dev/login
-playwright-cli fill "getByTestId('username')" standard_user
-playwright-cli fill "getByTestId('password')" workshop123
-playwright-cli click "getByTestId('login-submit')"
+playwright-cli fill "getByLabel('Username')" standard_user
+playwright-cli fill "getByLabel('Password')" workshop123
+playwright-cli click "getByRole('button', { name: 'Sign in' })"
 playwright-cli snapshot            # read the accessibility tree of /inventory
 playwright-cli close
 ```
+
+> Note: the standalone `playwright-cli` defaults `getByTestId` to `data-testid`, but
+> this app tags with **`data-test`** - so use `getByLabel` / `getByRole` (above) or a
+> CSS `[data-test=username]` selector in the CLI. (The MCP server and the test runner
+> read `testIdAttribute: 'data-test'` from the config, so `getByTestId` works there.)
 
 Discuss: the snapshot is structured (roles + names) - that's exactly what good
 locators target. Compare to a screenshot.

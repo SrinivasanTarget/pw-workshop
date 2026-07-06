@@ -151,8 +151,8 @@ result. Tools you should see are in *italics*.
 ## G11 - The quirky users (discovery)
 
 36. `locked_out_user`: try to sign in. Where do you end up, and is there any feedback? *(browser_click, browser_snapshot)*
-37. `problem_user`: sign in and compare the experience to `standard_user`. What is planted? *(browser_snapshot, browser_console_messages, browser_evaluate)*
-38. `glitch_user`: sign in a few times. Is the behaviour consistent? Use the network and console tools to characterise the glitch. *(browser_network_requests, browser_console_messages)*
+37. `problem_user`: sign in, then compare each product's image against its name and description (vs what `standard_user` sees). What is planted? *(browser_snapshot, browser_evaluate)*
+38. `glitch_user`: sign in, add an item to the cart, and watch the **Cart badge** the instant it changes versus a moment later. What is off, and for how long? *(browser_click, browser_snapshot, browser_wait_for)* (Hint: it is a timing/render bug - it will not show up in the network or console.)
 
 ## Stretch
 

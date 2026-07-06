@@ -57,6 +57,29 @@ A structured snapshot back = MCP is connected.
 > one-off, the `playwright-cli` skill drives a browser from Bash with no setup
 > ceremony.)
 
+## Stage gating - skills and Test Agents off first
+
+By default this repo ships **locked to stage 1**: the `Skill` tool and the three Test
+Agents (planner / generator / healer) are denied in `.claude/settings.json`, so the
+only AI surface is the raw `playwright-test` MCP. Attendees explore the app with
+`planner_setup_page` + `browser_*`, and nothing auto-invokes a skill or an agent.
+
+When you're ready for **stage 2**, delete these lines from `permissions.deny` in
+`.claude/settings.json` and reload the window (Cmd/Ctrl-Shift-P -> Developer: Reload
+Window):
+
+```json
+"Skill",
+"Agent(playwright-test-planner)",
+"Agent(playwright-test-generator)",
+"Agent(playwright-test-healer)",
+```
+
+Skills and the Test Agents then come online. Notes:
+- `deny` beats `allow` and cannot be undone from `settings.local.json`, so enabling
+  stage 2 really does mean editing `settings.json` (delete the four lines).
+- MCP stays on the whole time; only skills and the three agents are gated.
+
 ## Suggested 3-hour session flow
 
 | Block            | Time | Focus                                                      | Skill(s)                    |

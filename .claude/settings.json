@@ -1,5 +1,9 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
+
+  "// WORKSHOP STAGE 1 (default)": "Skills and the planner/generator/healer Test Agents are DISABLED so attendees explore the raw playwright-test MCP first. browser_* and planner_setup_page still work. This is a hard block: deny beats allow and cannot be re-enabled from settings.local.json.",
+  "// ENABLE STAGE 2": "Delete the Skill and Agent(...) lines from permissions.deny below, then reload the window (Cmd/Ctrl-Shift-P -> Developer: Reload Window). Skills and the Test Agents come online. See WORKSHOP_GUIDE.md.",
+
   "enableAllProjectMcpServers": true,
   "permissions": {
     "allow": [
@@ -13,6 +17,10 @@
       "mcp__playwright-test"
     ],
     "deny": [
+      "Skill",
+      "Agent(playwright-test-planner)",
+      "Agent(playwright-test-generator)",
+      "Agent(playwright-test-healer)",
       "mcp__playwright-test__browser_run_code_unsafe"
     ]
   }

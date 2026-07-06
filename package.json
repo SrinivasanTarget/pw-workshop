@@ -1,0 +1,28 @@
+{
+  "name": "pw-workshop",
+  "version": "1.0.0",
+  "description": "Playwright + Claude Code workshop - MCP, Skills, Test Agents, and the Playwright CLI",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "report": "playwright show-report",
+    "codegen": "playwright codegen https://playwright-workshop.pages.dev/login",
+    "install:browsers": "playwright install chromium"
+  },
+  "keywords": [
+    "playwright",
+    "claude-code",
+    "mcp",
+    "testing",
+    "workshop"
+  ],
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.61.0",
+    "@types/node": "^22.0.0"
+  }
+}

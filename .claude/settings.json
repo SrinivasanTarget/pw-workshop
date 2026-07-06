@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "enableAllProjectMcpServers": true,
+  "permissions": {
+    "allow": [
+      "Bash(npx playwright:*)",
+      "Bash(playwright-cli:*)",
+      "Bash(npx playwright-cli:*)",
+      "Bash(npm run:*)",
+      "Bash(npm install)",
+      "Bash(npm ci)",
+      "WebFetch(domain:playwright.dev)",
+      "mcp__playwright-test"
+    ],
+    "deny": [
+      "mcp__playwright-test__browser_run_code_unsafe"
+    ]
+  }
+}

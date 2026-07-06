@@ -1,0 +1,16 @@
+# Node
+node_modules/
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
+
+# playwright-cli scratch snapshots
+.playwright-cli/
+
+# Env & local Claude Code overrides
+.env
+.claude/settings.local.json

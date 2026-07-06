@@ -80,6 +80,10 @@ Skills and the Test Agents then come online. Notes:
   stage 2 really does mean editing `settings.json` (delete the four lines).
 - MCP stays on the whole time; only skills and the three agents are gated.
 
+The full stage-1 exercise set - instructor-led demos, a bunch of attendee exercises,
+and a capabilities checklist covering the whole MCP toolset - is in
+[`exercises/stage-1-mcp-exploration.md`](exercises/stage-1-mcp-exploration.md).
+
 ## Suggested 3-hour session flow
 
 | Block            | Time | Focus                                                      | Skill(s)                    |

@@ -101,6 +101,7 @@ npm run typecheck     # strict TypeScript check of the framework
 .claude/skills/     playwright-cli + test-craftsmanship + workflow skills
 .mcp.json           playwright-test MCP server (Claude Code)
 CLAUDE.md           project context for the AI
+exercises/          stage-1 raw-MCP exploration exercises (no skills/agents)
 src/                app.ts facade + actions/ (login) + api/ (products client)
 tests/              fixtures.ts (DI) + login (UI) + products-api (API) specs
 specs/              test plans the planner agent writes

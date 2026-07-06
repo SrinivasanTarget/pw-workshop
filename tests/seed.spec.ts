@@ -1,13 +1,13 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
 
 /**
- * Seed file for the Playwright Test Generator agent. The generator uses this as
- * the starting point when turning a test plan (specs/*.md) into a real spec -
- * it drives the browser live and writes the generated code out to tests/.
- * Leave the body empty; the agent fills it in.
+ * Seed scaffold for the Playwright Test Generator agent. It turns a plan in
+ * specs/*.md into a real spec, using this file's shape as the starting point.
+ * Left skipped and empty on purpose - the agent drives the browser live and
+ * writes the actual test body (and its own spec files under tests/).
  */
-test.describe('Test group', () => {
-  test('seed', async ({ page }) => {
+test.describe('Seed', () => {
+  test.skip('generated from a plan by the generator agent', async () => {
     // generate code here.
   });
 });

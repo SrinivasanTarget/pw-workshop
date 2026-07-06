@@ -72,13 +72,13 @@ Agents live in `.claude/agents/`. Invoke them in natural language in Claude Code
 3. **Healer** → runs the suite, patches failures using trace / console / network
 
 > Load the authoring skills before generating, so output matches house style and
-> the page objects in `pages/`.
+> the functional helpers in `src/`.
 
 ## Authoring skills (house style)
 
-- `[[playwright-page-object]]` - when/how to use POM
+- `[[test-craftsmanship]]` - SOLID, DRY, clean code, smells; the functional-helpers architecture; why there's no page object
 - `[[playwright-locators]]` - locator priority + auto-wait
-- `[[playwright-fixtures-auth]]` - custom fixtures, storage state, isolation
+- `[[playwright-fixtures-auth]]` - custom fixtures (DI), storage state, isolation
 - `[[playwright-debugging]]` - UI mode, codegen, trace viewer
 - `[[playwright-bug-hunting]]` - finding real bugs (broken images, console guards)
 - `[[playwright-network-mocking]]` - `page.route`, HAR, deterministic CI
@@ -105,7 +105,7 @@ Playwright task comes in
 - Using `browser_take_screenshot` when `browser_snapshot` would do - pixels
   instead of structure, and more tokens.
 - Generating tests with no authoring skills loaded - output won't match house
-  style or the page objects in `pages/`.
+  style or the functional helpers in `src/`.
 - Running the Healer on a *missing / broken feature* - it'll keep trying. If the
   feature is broken (not the test), it skips. Don't fight it.
 

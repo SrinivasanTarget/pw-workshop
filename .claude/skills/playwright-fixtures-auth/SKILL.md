@@ -5,9 +5,9 @@ description: Build custom Playwright fixtures, skip repeated login with storage 
 
 # Fixtures, auth & test isolation
 
-You build these during the workshop:
-- `tests/fixtures.ts` - a `loginPage`, an `inventoryPage`, and a composed
-  `authenticatedInventoryPage` fixture
+`tests/fixtures.ts` already injects an `app` facade - that *is* Dependency Injection
+(see [[test-craftsmanship]]). During the workshop you build on it:
+- an **authenticated** `app` fixture, composed on top of the base `app`
 - a storage-state reuse test across isolated contexts
 
 > This app's login is **client-side** - the session lives in `localStorage`, not a
@@ -18,7 +18,7 @@ You build these during the workshop:
 
 - Run only for tests that ask for the fixture (named parameter destructuring).
 - Return a typed value via `use()`; teardown after `use`.
-- Compose: a fixture can depend on other fixtures (see `authenticatedInventoryPage` in this repo).
+- Compose: a fixture can depend on other fixtures (e.g. an authenticated `app` that builds on the base `app`).
 
 ## Isolation contract
 
@@ -32,11 +32,11 @@ Playwright gives every test a fresh browser context + page. So:
 ## Storage state - skip the UI login
 
 ```ts
-// once: save cookies after a real login
-await loginPage.page.context().storageState({ path: 'playwright/.auth/user.json' });
+// once: after a real login, save the session (cookies + localStorage + origins)
+await page.context().storageState({ path: 'playwright/.auth/user.json' });
 
-// after: open contexts pre-loaded with that state
-const ctx = await browser.newContext({ storageState: 'playwright/.auth/user.json' });
+// after: new contexts start already signed in
+const context = await browser.newContext({ storageState: 'playwright/.auth/user.json' });
 ```
 
 ## When to use which auth pattern
@@ -46,7 +46,7 @@ const ctx = await browser.newContext({ storageState: 'playwright/.auth/user.json
 | Most tests need the same logged-in user | `globalSetup` + `use.storageState` in config |
 | Multiple user types | One storage file per user + `test.use({ storageState })` |
 | Test is *about* login | No storage state - start fresh |
-| One or two tests share login | A composed fixture (see this repo) |
+| One or two tests share login | A composed fixture (an authenticated `app`) |
 
 ## Pitfalls
 

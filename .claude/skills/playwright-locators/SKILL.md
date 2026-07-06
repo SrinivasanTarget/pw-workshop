@@ -45,8 +45,9 @@ const card = page.locator('main > div')
   .filter({ has: page.getByRole('heading', { name, level: 3 }) });
 ```
 
-You'll build the real version - `productCard(name)` - into
-`pages/inventory.page.ts` during the workshop (it's stubbed with TODOs).
+You'll build the real version as a small query helper that returns this filtered
+Locator (never `.nth()`), so `expect` keeps auto-waiting - see [[test-craftsmanship]]
+for where such helpers live.
 
 ## Common failure modes
 

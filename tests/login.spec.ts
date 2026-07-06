@@ -1,34 +1,17 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
+import { login } from '../src/actions/login';
 
 /**
- * Reference spec - the happy-path login. This one passes out of the box and is
- * the anchor for the workshop's first exercises (refactor to a page object,
- * then to a fixture). Everything else in tests/ you'll build live.
- *
- * House style: getByRole / getByLabel over CSS, web-first `expect(locator)`
- * assertions, no manual waits. See the `playwright-locators` skill.
+ * Reads as intent: sign in, then assert on what should be seen. No page objects,
+ * no raw locators or `page.` plumbing in the spec - the `login` action owns the
+ * mechanics, and assertions stay web-first on the App's query helpers (which return
+ * Locators, so `expect` keeps auto-waiting). See the `test-craftsmanship` skill.
  */
 test.describe('Login', () => {
-  test('standard_user can sign in', async ({ page }) => {
-    // 1. Go to the login page (baseURL is set in playwright.config.ts)
-    await page.goto('/login');
+  test('standard_user can sign in', async ({ app }) => {
+    await login(app, 'standard_user', 'workshop123');
 
-    // 2. Fill in credentials (password for every test account is workshop123)
-    await page.getByLabel('Username').fill('standard_user');
-    await page.getByLabel('Password').fill('workshop123');
-
-    // 3. Submit
-    await page.getByRole('button', { name: 'Sign in' }).click();
-
-    // 4. Land on the inventory page
-    await expect(page).toHaveURL(/\/inventory$/);
-    await expect(
-      page.getByRole('heading', { name: 'Products', level: 1 }),
-    ).toBeVisible();
-
-    // 5. The header now shows the logged-in user
-    await expect(
-      page.getByRole('button', { name: 'Logout (standard_user)' }),
-    ).toBeVisible();
+    await expect(app.heading('Products')).toBeVisible();
+    await expect(app.button('Logout (standard_user)')).toBeVisible();
   });
 });

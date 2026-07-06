@@ -38,9 +38,11 @@ override with `BASE_URL`). It is a SauceDemo-style store.
   (CLI vs MCP vs agent vs just editing files).
 - `playwright-cli` - scripted browser driving from Bash
   (`playwright-cli open/goto/click/snapshot/...`).
+- `test-craftsmanship` - **the house craft.** SOLID, DRY, clean code, code smells,
+  the Dependency Rule, pattern discipline; the functional-helpers architecture; why
+  we reject the Page Object Model.
 - `playwright-locators` - locator priority, auto-wait, web-first assertions.
-- `playwright-page-object` - when and how to use POM.
-- `playwright-fixtures-auth` - fixtures, storage state, test isolation.
+- `playwright-fixtures-auth` - fixtures (DI), storage state, test isolation.
 - `playwright-debugging` - UI mode, codegen, trace viewer, `page.pause()`.
 - `playwright-bug-hunting` - broken-image audits, console/5xx guards, a11y.
 - `playwright-network-mocking` - `page.route`, HAR record/replay.
@@ -57,6 +59,10 @@ poke without that ceremony, use the `playwright-cli` skill instead.
 
 ## House style - quick anchors
 
+- **Architecture:** **no Page Object Model.** Business intent lives in small
+  functions (`src/actions/`) and typed API clients (`src/api/`) behind a thin `App`
+  facade (`src/app.ts`); the `app` fixture injects it (DI). Assertions live in the
+  spec, web-first. See `test-craftsmanship`.
 - **Locators:** `getByRole` → `getByLabel` → `getByPlaceholder` → `getByTestId`.
   Avoid CSS chains / positional XPath.
 - **Waits:** never `page.waitForTimeout()`; let `await expect(locator)...` wait.
@@ -68,8 +74,11 @@ poke without that ceremony, use the `playwright-cli` skill instead.
 
 ## What's in the repo
 
-- `tests/login.spec.ts` - a passing reference: `standard_user` signs in.
-- `tests/seed.spec.ts` - empty seed the generator agent builds on.
-- `pages/` - **starter/stub** page objects you flesh out during the workshop.
+- `src/app.ts` - the `App` facade (the driver seam); `src/actions/` - business-intent
+  functions (`login`); `src/api/` - typed clients (`products`). See `test-craftsmanship`.
+- `tests/fixtures.ts` - composes `page`/`request` into the `app` fixture (DI).
+- `tests/login.spec.ts` - passing UI reference: `login`, then assert.
+- `tests/products-api.spec.ts` - passing API reference: the typed products client.
+- `tests/seed.spec.ts` - skipped seed the generator agent builds on.
 - `specs/` - where the planner agent writes test plans.
 - `WORKSHOP_GUIDE.md` - instructor session flow + exercises.

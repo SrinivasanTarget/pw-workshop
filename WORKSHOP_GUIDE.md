@@ -63,8 +63,8 @@ A structured snapshot back = MCP is connected.
 | ---------------- | ---- | ---------------------------------------------------------- | --------------------------- |
 | Warm-up          | 15m  | Run the suite, open `--ui`, walk through the login test    | none                        |
 | CLI + snapshots  | 20m  | Drive the live app with `playwright-cli`; read a snapshot  | `playwright-cli`            |
-| Resilient locators| 25m | Why role/label > CSS. Live `codegen`. Build the POM.      | `playwright-locators`, `playwright-page-object` |
-| Fixtures + auth  | 30m  | Replace `beforeEach` with fixtures; storage-state speedup  | `playwright-fixtures-auth`  |
+| Locators + actions | 30m | Role/label > CSS; extract flows into `src/actions` functions - no page objects | `playwright-locators`, `test-craftsmanship` |
+| Fixtures + auth  | 25m  | The `app` fixture as DI; storage-state to skip UI login    | `playwright-fixtures-auth`  |
 | Break            | 10m  |                                                            |                             |
 | Debugging        | 20m  | Trace viewer, `--debug`, `page.pause` - fix a planted bug  | `playwright-debugging`      |
 | Bug hunting      | 25m  | Find the broken Desk Lamp image; add a console-error guard | `playwright-bug-hunting`    |
@@ -88,23 +88,31 @@ playwright-cli close
 Discuss: the snapshot is structured (roles + names) - that's exactly what good
 locators target. Compare to a screenshot.
 
-### Locators + page object
+### Locators + actions
 
-`tests/login.spec.ts` inlines its locators. Refactor it to use
-`pages/login.page.ts` (already stubbed). Then build `pages/inventory.page.ts`:
-a `productCard(name)` that **filters** cards by their heading (don't `.nth()`),
-an `addToCart(name)`, and a `sortBy(option)`. Re-run and keep it green.
+`tests/login.spec.ts` already reads as intent - `login(app, ...)` then web-first
+assertions on `app.heading(...)`, no page objects. Extend `src/actions` and
+`src/app.ts` to cover inventory:
 
-> Note: the app uses `data-test`, and `playwright.config.ts` sets
-> `testIdAttribute: 'data-test'`, so `getByTestId('sort')` just works.
+1. Add `addToCart(app, productName)` and `sortBy(app, option)` functions in
+   `src/actions/` (reuse `app.page`; a click by `data-test` is fine inside an action).
+2. Add a query helper (a function returning a **Locator**) for a product card,
+   filtered by its heading - never `.nth()`.
+3. Write a spec: log in, add the Desk Lamp, assert the cart. Keep it green.
+
+> The app uses `data-test`; `playwright.config.ts` sets `testIdAttribute: 'data-test'`,
+> so `getByTestId('sort')` just works. Read `test-craftsmanship` for where each piece
+> goes, why there's no page object, and when a heavier pattern (Screenplay) would be
+> justified.
 
 ### Fixtures + auth
 
-`login.spec.ts` logs in through the UI. Convert:
-1. Add a `tests/fixtures.ts` exposing a `loginPage` and an
-   `authenticatedInventoryPage` fixture.
-2. Add a setup that logs in once, saves `playwright/.auth/user.json`, and set
-   `use.storageState` so most tests skip the UI login.
+The `app` fixture already composes `page`/`request` and injects a ready seam - that is
+Dependency Injection. Now make login cheap:
+1. Sign in once, save `playwright/.auth/user.json`, and set `use.storageState` so specs
+   start already authenticated.
+2. Add an authenticated variant of the fixture (or a project with `storageState`) so
+   most specs skip the UI login entirely.
 3. Compare runtimes before/after.
 
 ### Debugging
@@ -164,7 +172,7 @@ Markdown plan to `specs/inventory.md`.
 ### 2. Generate
 
 > Use the playwright-test-generator agent to create tests from `specs/inventory.md`.
-> Follow the house style in the skills and the pages in `pages/`.
+> Follow the house style in the skills and the functional helpers in `src/`.
 
 The Generator writes `tests/<scenario>.spec.ts`, verifying selectors against the
 live app as it goes. Mentioning the skills keeps it on house style.

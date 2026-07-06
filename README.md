@@ -66,7 +66,7 @@ If you get a structured accessibility snapshot back, the MCP server is connected
 | Poke the live page quickly from the terminal   | **`playwright-cli` skill** - `playwright-cli open/click/...` |
 | Explore a page live from inside Claude         | **playwright-test MCP** - `planner_setup_page` + `browser_*`|
 | Plan → generate → heal a feature's tests       | **Test Agents** in `.claude/agents/`                        |
-| Write tests in the repo's house style          | **Skills** in `.claude/skills/`                             |
+| Write tests the house way (SOLID, functional)  | **Skill** - `test-craftsmanship`                            |
 
 Start any Playwright task by letting Claude read the **`playwright-mcp-workflow`**
 skill - it's the orchestrator that decides which surface fits.
@@ -91,17 +91,18 @@ npm run test:headed   # run headed
 npm run test:debug    # step through with the Inspector
 npm run report        # open the last HTML report
 npm run codegen       # record a test against /login
+npm run typecheck     # strict TypeScript check of the framework
 ```
 
 ## Where things live
 
 ```
 .claude/agents/     planner · generator · healer (Test Agents)
-.claude/skills/     playwright-cli + 8 house-style/workflow skills
+.claude/skills/     playwright-cli + test-craftsmanship + workflow skills
 .mcp.json           playwright-test MCP server (Claude Code)
 CLAUDE.md           project context for the AI
-pages/              starter/stub page objects (you build these out)
-tests/              login.spec.ts (passing) + seed.spec.ts
+src/                app.ts facade + actions/ (login) + api/ (products client)
+tests/              fixtures.ts (DI) + login (UI) + products-api (API) specs
 specs/              test plans the planner agent writes
 WORKSHOP_GUIDE.md   instructor session flow + exercises
 ```

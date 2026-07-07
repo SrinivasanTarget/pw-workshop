@@ -1,6 +1,6 @@
 ---
 name: playwright-bug-hunting
-description: Use Playwright as an investigation tool, not just a regression suite - broken-image audits, console-error capture, failed-request capture, negative-path tests, accessibility scans. Use during exploratory testing or whenever a real bug is suspected but not reliably reproducible.
+description: Uses Playwright as an investigation tool, not just a regression suite - broken-image audits, console-error capture, failed-request capture, negative-path tests, accessibility scans. Use during exploratory testing or whenever a real bug is suspected but not reliably reproducible.
 ---
 
 # Bug hunting with Playwright

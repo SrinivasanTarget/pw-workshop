@@ -1,6 +1,6 @@
 ---
 name: playwright-api-testing
-description: Mix API calls into Playwright suites - pure API tests via the request fixture and hybrid tests that seed state via API then assert through the UI. Use when login/setup is slow, when verifying side-effects, or for API regression coverage alongside UI.
+description: Mixes API calls into Playwright suites - pure API tests via the request fixture and hybrid tests that seed state via API then assert through the UI. Use when login/setup is slow, when verifying side-effects, or for API regression coverage alongside UI.
 ---
 
 # API testing with Playwright

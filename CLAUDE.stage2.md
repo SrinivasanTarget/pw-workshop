@@ -1,46 +1,60 @@
 # Playwright Workshop - project guide (Claude Code)
 
 A hands-on Playwright workshop driven from **VS Code + the Claude Code extension**
-(Anthropic API key). It shows four complementary ways an AI assistant can automate
-and test a real web app:
+(Anthropic API key). **Stage 2** is about house style: you drive the live app with the
+**browser MCP**, then use the **skills** and this file to write and **refactor** tests
+into a clean, opinionated shape - no Page Object Model, no ceremony.
 
-1. **Playwright CLI** - `npx playwright ...` to run/debug/generate tests, plus the
-   `playwright-cli` skill for scripted browser driving straight from Bash.
-2. **playwright-test MCP server** - live browser driving inside a test context
-   (`browser_*` tools) and the engine behind the Test Agents. Configured in
-   `.mcp.json`.
-3. **Test Agents** - `planner` / `generator` / `healer` in `.claude/agents/`: the
-   plan → generate → heal loop.
-4. **Skills** - house style + workflow guidance in `.claude/skills/`, loaded on
-   demand.
+## How we work in stage 2
+
+Two modes (see the `playwright-mcp-workflow` skill):
+
+- **Observe / drive the live app** -> the **browser MCP** (`browser_*` tools). It is a
+  raw browser driver with **no setup ceremony** - just `browser_navigate` then
+  `browser_snapshot` (the structured accessibility tree). Use it to explore, find
+  selectors (`browser_generate_locator`), and reproduce states (`browser_route`).
+- **Write / refactor / review a test** -> **edit files** to the house style below,
+  loading the skill that fits, and run with `npx playwright test`.
+
+The planner / generator / healer **Test Agents** and their `run-test-mcp-server` are a
+**later stage** - they are off here.
 
 ## The app under test
 
-Deployed app: **https://playwright-workshop.pages.dev** (set as `baseURL`;
-override with `BASE_URL`). It is a SauceDemo-style store.
+Deployed app: **https://playwright-workshop.pages.dev** (set as `baseURL`; override
+with `BASE_URL`). A SauceDemo-style store.
 
-- `/login` - 4 accounts, password `workshop123` for all:
-  `standard_user` (happy path), `locked_out_user`, `problem_user`,
-  `glitch_user` (the last three have planted quirks/bugs).
-- `/inventory` - 6 products, a **Sort** dropdown, Add-to-cart.
-- `/cart`, `/playground`.
-- `GET /api/products` → `{ products: [...] }`. **Login is client-side** - there is
-  no `/api/login`.
-- Elements are tagged with **`data-test`** (not `data-testid`).
-  `playwright.config.ts` sets `testIdAttribute: 'data-test'`, so
-  `getByTestId('username')` resolves to `[data-test="username"]`.
-- **Known planted bug:** the **Desk Lamp** product image points at
-  `/images/does-not-exist.png` - the target of the bug-hunting demo.
+- `/login` - 4 accounts, password `workshop123` for all: `standard_user` (happy path),
+  `locked_out_user`, `problem_user`, `glitch_user` (the last three have planted quirks).
+- `/inventory` - 6 products, a **Sort** dropdown, Add-to-cart. Also `/cart`, `/playground`.
+- `GET /api/products` -> `{ products: [...] }`. **Login is client-side** - there is no
+  `/api/login`; the session lives in `localStorage`.
+- Elements are tagged with **`data-test`** (not `data-testid`). `playwright.config.ts`
+  sets `testIdAttribute: 'data-test'`, so `getByTestId('username')` resolves to
+  `[data-test="username"]`.
+- **Known planted bug:** the **Desk Lamp** image points at `/images/does-not-exist.png`.
+
+## House style - quick anchors
+
+- **Architecture:** **no Page Object Model.** Business intent lives in small functions
+  (`src/actions/`) and typed API clients (`src/api/`) behind a thin `App` facade
+  (`src/app.ts`); the `app` fixture injects it (DI). Assertions live in the spec,
+  web-first. See `test-craftsmanship`.
+- **Locators:** `getByRole` -> `getByLabel` -> `getByPlaceholder` -> `getByTestId`.
+  Avoid CSS chains / positional XPath. See `playwright-locators`.
+- **Waits:** never `page.waitForTimeout()`; let `await expect(locator)...` wait. Avoid
+  `waitForLoadState('networkidle')`.
+- **Assertions:** web-first only - `await expect(locator).toX(...)`, never
+  `expect(await locator.textContent()).toBe(...)`.
+- **Auth:** prefer fixtures + `storageState` (`playwright/.auth/user.json`) over
+  re-logging in each test. See `playwright-fixtures-auth`.
 
 ## Skills (load on demand)
 
-- `playwright-mcp-workflow` - **read first.** Which surface to reach for
-  (CLI vs MCP vs agent vs just editing files).
-- `playwright-cli` - scripted browser driving from Bash
-  (`playwright-cli open/goto/click/snapshot/...`).
-- `test-craftsmanship` - **the house craft.** SOLID, DRY, clean code, code smells,
-  the Dependency Rule, pattern discipline; the functional-helpers architecture; why
-  we reject the Page Object Model.
+- `playwright-mcp-workflow` - **read first.** How to work: browser MCP to observe, the
+  skills below to write.
+- `test-craftsmanship` - **the house craft.** SOLID, DRY, clean code, the Dependency
+  Rule, the functional-helpers architecture; why we reject the Page Object Model.
 - `playwright-locators` - locator priority, auto-wait, web-first assertions.
 - `playwright-fixtures-auth` - fixtures (DI), storage state, test isolation.
 - `playwright-debugging` - UI mode, codegen, trace viewer, `page.pause()`.
@@ -48,37 +62,16 @@ override with `BASE_URL`). It is a SauceDemo-style store.
 - `playwright-network-mocking` - `page.route`, HAR record/replay.
 - `playwright-api-testing` - the `request` fixture, hybrid UI + API tests.
 
-## MCP gotcha - must read
-
-`playwright-test` (`npx playwright run-test-mcp-server`) is a **test-runner** MCP,
-not a raw browser driver. Every `browser_*` call must live inside a test context.
-**Before any `browser_*` call in a free-form session, call `planner_setup_page`
-first** - otherwise you get *"must setup test before interacting with the page."*
-Test Agents call their own setup tool automatically. For a quick one-off browser
-poke without that ceremony, use the `playwright-cli` skill instead.
-
-## House style - quick anchors
-
-- **Architecture:** **no Page Object Model.** Business intent lives in small
-  functions (`src/actions/`) and typed API clients (`src/api/`) behind a thin `App`
-  facade (`src/app.ts`); the `app` fixture injects it (DI). Assertions live in the
-  spec, web-first. See `test-craftsmanship`.
-- **Locators:** `getByRole` → `getByLabel` → `getByPlaceholder` → `getByTestId`.
-  Avoid CSS chains / positional XPath.
-- **Waits:** never `page.waitForTimeout()`; let `await expect(locator)...` wait.
-  Avoid `waitForLoadState('networkidle')`.
-- **Assertions:** web-first only - `await expect(locator).toX(...)`, never
-  `expect(await locator.textContent()).toBe(...)`.
-- **Auth:** prefer fixtures + `storageState` (`playwright/.auth/user.json`) over
-  re-logging in each test.
-
 ## What's in the repo
 
-- `src/app.ts` - the `App` facade (the driver seam); `src/actions/` - business-intent
-  functions (`login`); `src/api/` - typed clients (`products`). See `test-craftsmanship`.
-- `tests/fixtures.ts` - composes `page`/`request` into the `app` fixture (DI).
-- `tests/login.spec.ts` - passing UI reference: `login`, then assert.
-- `tests/products-api.spec.ts` - passing API reference: the typed products client.
-- `tests/seed.spec.ts` - skipped seed the generator agent builds on.
-- `specs/` - where the planner agent writes test plans.
-- `WORKSHOP_GUIDE.md` - instructor session flow + exercises.
+The repo ships mostly empty on purpose - you **build** `src/` and `tests/` to the house
+style during the stage.
+
+- `playwright.config.ts` - `baseURL`, `testIdAttribute: 'data-test'`, trace/screenshot
+  on failure.
+- `tests/seed.spec.ts` - a throwaway seed spec so `npm test` is green; replace it with
+  real specs.
+- `src/` and the rest of `tests/` - **you create these**, to the shape in
+  `test-craftsmanship`: `src/app.ts` (the `App` facade), `src/actions/` (business-intent
+  functions), `src/api/` (typed clients), `tests/fixtures.ts` (composes `page`/`request`
+  into the `app` fixture), `tests/*.spec.ts` (specs that read as intent).

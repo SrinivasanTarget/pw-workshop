@@ -7,11 +7,11 @@ differently. This repo wires up **both** (see `.mcp.json`) and stage-gates them.
 > **TL;DR**
 > - **`@playwright/mcp` (general)** - a raw browser driver. Full surface (route,
 >   storage, tracing, verify), no setup ceremony. **Use it to explore/automate a
->   live browser.** This repo runs it as the `playwright` server. **Stage 1.**
+>   live browser.** This repo runs it as the `playwright` server. **Stages 1-2.**
 > - **`playwright run-test-mcp-server` (test)** - the engine behind the
 >   planner/generator/healer **Test Agents**. Runs inside a test suite, needs
 >   `planner_setup_page`, and carries the `planner_*`/`generator_*`/`test_*`
->   orchestration tools. **Use it to plan/generate/heal tests.** **Stage 2.**
+>   orchestration tools. **Use it to plan/generate/heal tests.** **A later stage.**
 
 All numbers below were measured against the versions installed in this repo
 (`playwright`, `playwright-core`, `@playwright/test` all **1.61.1**).
@@ -59,12 +59,12 @@ playwright-core    the engine: browser protocol + the bundled MCP tools +
 | Ties to planner/generator/healer | No | **Yes - this is their engine** |
 | Browser/state model | Its own browser context | A different browser inside the test context |
 | Best for | Exploration, bug-hunting, network mocking, storage, tracing | Plan -> generate -> heal test authoring |
-| Workshop stage | **Stage 1** | **Stage 2** |
+| Workshop stage | **Stages 1-2** | **A later stage** |
 
 > **Do not run both in the same manual flow.** They drive **separate browsers with
 > no shared state** - log in on one and the other still sees a blank, logged-out
 > page. This repo denies the test MCP during stage 1 so exploration stays on one
-> browser; stage 2 turns it on for the agents (which drive their own browser).
+> browser; a later stage turns it on for the agents (which drive their own browser).
 
 ---
 
@@ -118,12 +118,14 @@ playwright-core    the engine: browser protocol + the bundled MCP tools +
 
 `.mcp.json` registers both. `.claude/settings.json` gates them:
 
-- **Stage 1 (default):** `mcp__playwright` allowed, `mcp__playwright-test` **denied**.
-  Exploration runs on the general MCP only - full surface, no ceremony, honest tool
-  list. Skills and the Test Agents are also denied.
-- **Stage 2:** delete the `mcp__playwright-test`, `Skill`, and `Agent(...)` lines
-  from `permissions.deny`, then reload the window. The Test Agents and their engine
-  come online alongside the general MCP.
+- **Stage 1 (default):** `mcp__playwright` allowed; `mcp__playwright-test`, `Skill`,
+  and the `Agent(...)` lines **denied**. Exploration runs on the general MCP only -
+  full surface, no ceremony, honest tool list.
+- **Stage 2:** delete the `Skill` line from `permissions.deny` and rename
+  `CLAUDE.stage2.md` -> `CLAUDE.md`, then reload the window. The house-style skills +
+  `CLAUDE.md` come online; the general MCP stays on.
+- **A later stage:** delete the `mcp__playwright-test` and `Agent(...)` lines to bring
+  the Test Agents and their engine online.
 
 `browser_run_code_unsafe` is denied on **both** servers regardless of stage.
 

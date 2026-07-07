@@ -9,10 +9,6 @@
         "--output-dir",
         ".playwright-mcp"
       ]
-    },
-    "playwright-test": {
-      "command": "npx",
-      "args": ["playwright", "run-test-mcp-server"]
     }
   }
 }

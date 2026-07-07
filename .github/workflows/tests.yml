@@ -1,0 +1,80 @@
+# Playwright tests + self-healing.
+#
+# test: runs the suite on every push/PR.
+# heal: kicks in only when the test job FAILS — the LangGraph healer
+#       (langgraph-agent, driven by .claude/agents/playwright-test-healer.md)
+#       debugs the failures with the playwright-test MCP, fixes the specs, and
+#       opens a `ci/heal-<run id>` PR with the changes for human review.
+#
+# Required repo secret: ANTHROPIC_API_KEY (Settings -> Secrets -> Actions).
+
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+  heal:
+    needs: test
+    # Only heal real failures, and never re-heal a heal PR (loop guard).
+    if: failure() && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm ci
+        working-directory: langgraph-agent
+
+      # CI=1 keeps browsers headless (see playwright.config.ts). If test_debug
+      # ever needs a display, prefix with `xvfb-run --auto-servernum`.
+      - name: Heal failing tests
+        id: heal
+        working-directory: langgraph-agent
+        run: npm run heal
+        continue-on-error: true # still open a PR with partial fixes + report
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Publish heal report to job summary
+        if: always()
+        run: cat heal-summary.md >> "$GITHUB_STEP_SUMMARY" || true
+
+      - name: Open PR with healed tests
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: ci/heal-${{ github.run_id }}
+          add-paths: tests/**
+          commit-message: 'ci: heal failing Playwright tests'
+          title: 'ci: heal failing Playwright tests (${{ github.workflow }} run ${{ github.run_id }})'
+          body-path: heal-summary.md
+          labels: self-healing

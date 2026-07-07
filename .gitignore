@@ -8,8 +8,10 @@ node_modules/
 /playwright/.cache/
 /playwright/.auth/
 
-# playwright-test MCP scratch snapshots
+# playwright MCP scratch snapshots + artifacts (screenshots/traces/videos)
 .playwright-mcp/
+# stray root-level screenshots from MCP browser sessions
+/*.png
 
 # Env & local Claude Code overrides
 .env

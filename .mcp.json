@@ -1,5 +1,15 @@
 {
   "mcpServers": {
+    "playwright": {
+      "command": "node",
+      "args": [
+        "node_modules/playwright-core/lib/entry/mcp.js",
+        "--caps",
+        "vision,pdf,devtools,network,storage,testing",
+        "--output-dir",
+        ".playwright-mcp"
+      ]
+    },
     "playwright-test": {
       "command": "npx",
       "args": ["playwright", "run-test-mcp-server"]

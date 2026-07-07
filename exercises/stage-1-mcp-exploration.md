@@ -1,24 +1,32 @@
-# Stage 1 - Explore the playwright-test MCP server
+# Stage 1 - Explore the Playwright MCP server
 
-Stage 1 is **raw MCP only**. Skills and the planner/generator/healer agents are
-disabled (see `WORKSHOP_GUIDE.md` > Stage gating), so the only AI surface is the
-`playwright-test` MCP server. The goal: drive and inspect a real app - and see the
-full range of what the MCP can do - before any house-style skills or agents enter.
+Stage 1 is **raw MCP only**. Skills, the planner/generator/healer agents, and the
+`playwright-test` MCP are disabled (see `WORKSHOP_GUIDE.md` > Stage gating), so the
+only AI surface is the general **`playwright` MCP** - the full browser-automation
+server. The goal: drive and inspect a real app, and see the full range of what the
+MCP can do, before any house-style skills or agents enter.
 
 App under test: **https://playwright-workshop.pages.dev** (relative paths below are
 against that origin).
 
+> New here? [`MCP_SERVERS.md`](../MCP_SERVERS.md) explains how the general
+> `playwright` MCP (stage 1) differs from `run-test-mcp-server` (stage 2).
+
 ## How you drive it
 
 You do not call tools by hand. In the **Claude Code panel** you type a plain-English
-request; Claude decides which `playwright-test` tools to call and shows each call.
+request; Claude decides which `playwright` tools to call and shows each call.
 **Watch the tool calls** - that stream *is* the MCP server working. Each exercise
 lists the tool(s) it should exercise so you can connect the ask to the capability.
 
-> ⚠️ **`planner_setup_page` first.** `playwright-test` is a *test-runner* MCP: every
-> `browser_*` call must live inside a test context. Start any session by asking Claude
-> to "set up the page" (it calls `planner_setup_page`). Skip it and you get
-> *"must setup test before interacting with the page."*
+> ✅ **No setup ceremony.** The general `playwright` MCP is a raw browser driver -
+> just ask Claude to navigate and act. (The `planner_setup_page` step belongs to the
+> stage-2 `run-test-mcp-server`, which is off here.)
+>
+> ⚠️ **Two tools are unavailable by design** (they are `skillOnly`): there is no
+> `browser_reload` (ask Claude to **re-navigate** the same URL) and no
+> `browser_check` (ask it to **click** the checkbox). `browser_navigate_forward`
+> is absent too.
 
 ## Test accounts (password `workshop123` for all)
 
@@ -33,9 +41,9 @@ lists the tool(s) it should exercise so you can connect the ask to the capabilit
 
 | Capability | Tools |
 |---|---|
-| Set up & navigate | `planner_setup_page`, `browser_navigate`, `browser_navigate_back`/`forward`, `browser_reload`, `browser_tabs` |
+| Navigate | `browser_navigate`, `browser_navigate_back`, `browser_tabs` (re-navigate for reload) |
 | Observe structure | `browser_snapshot` (accessibility tree), `browser_take_screenshot`, `browser_generate_locator` |
-| Interact | `browser_click`, `browser_type`, `browser_fill_form`, `browser_select_option`, `browser_hover`, `browser_check`/`uncheck`, `browser_press_key`, `browser_drag`/`drop`, `browser_file_upload`, `browser_handle_dialog` |
+| Interact | `browser_click` (also ticks checkboxes), `browser_type`, `browser_fill_form`, `browser_select_option`, `browser_hover`, `browser_press_key`, `browser_drag`/`drop`, `browser_file_upload`, `browser_handle_dialog` |
 | Verify / wait | `browser_wait_for`, `browser_verify_element_visible`, `browser_verify_text_visible`, `browser_verify_list_visible`, `browser_verify_value` |
 | Investigate | `browser_evaluate`, `browser_console_messages`, `browser_network_requests`, `browser_network_request` |
 | Control the network | `browser_route`, `browser_route_list`, `browser_unroute`, `browser_network_state_set` |
@@ -48,10 +56,9 @@ lists the tool(s) it should exercise so you can connect the ask to the capabilit
 
 Run these live first, thinking aloud. Each shows a prompt to type and what to point out.
 
-1. **Set up + first look.** *"Set up the page, go to /login, and snapshot it."*
+1. **First look.** *"Go to /login and snapshot it."*
    Point out: the snapshot is an **accessibility tree** (roles + names), not a picture -
-   that is what Claude reasons over. (`planner_setup_page`, `browser_navigate`,
-   `browser_snapshot`.)
+   that is what Claude reasons over. (`browser_navigate`, `browser_snapshot`.)
 2. **Sign in.** *"Sign in as standard_user (password workshop123) and confirm we land
    on the Products page."* Point out how Claude picks the Username/Password fields and
    the Sign in button from the snapshot. (`browser_type`/`browser_fill_form`,
@@ -64,9 +71,9 @@ Run these live first, thinking aloud. Each shows a prompt to type and what to po
 5. **Look under the hood.** *"Show the network requests this page made, and any console
    errors."* Point out `GET /api/products`. (`browser_network_requests`,
    `browser_console_messages`.)
-6. **Bend reality.** *"Intercept /api/products and return an empty product list, then
-   reload and describe what the inventory page shows."* Does it empty gracefully or
-   break? (`browser_route`, `browser_reload`.)
+6. **Bend reality.** *"Intercept /api/products to return an empty product list, then
+   re-open /inventory and describe what it shows."* Does it empty gracefully or
+   break? (`browser_route`, `browser_navigate`.)
 7. **A native dialog.** *"Go to /playground/dialogs, trigger the confirm dialog, and
    accept it."* (`browser_handle_dialog`, `browser_click`.)
 8. **Get a real locator.** *"Generate a Playwright locator for the Sort dropdown on
@@ -85,9 +92,9 @@ result. Tools you should see are in *italics*.
 
 ## G1 - Navigate
 
-1. Open `/login`, then use browser history to go to `/inventory` and back. *(browser_navigate, browser_navigate_back/forward)*
+1. Open `/login`, then `/inventory`, then use browser history to go back. *(browser_navigate, browser_navigate_back)*
 2. Open `/inventory` and `/cart` in two tabs and list the open tabs. *(browser_tabs)*
-3. Reload `/inventory` and confirm it re-fetches the products. *(browser_reload, browser_network_requests)*
+3. Re-open `/inventory` (navigate to it again) and confirm it re-fetches the products. *(browser_navigate, browser_network_requests)*
 
 ## G2 - Observe
 
@@ -121,19 +128,19 @@ result. Tools you should see are in *italics*.
 
 ## G7 - Control the network
 
-19. Stub `/api/products` to return `{ "products": [] }`, reload, and describe the empty state (or crash). *(browser_route)*
-20. Make `/api/products` return a 500, reload, and describe how the page handles it. *(browser_route)*
-21. Go offline (`browser_network_state_set`), reload `/inventory`, and report what breaks. *(browser_network_state_set)*
+19. Stub `/api/products` to return `{ "products": [] }`, re-open `/inventory`, and describe the empty state (or crash). *(browser_route, browser_navigate)*
+20. Make `/api/products` return a 500, re-open `/inventory`, and describe how the page handles it. *(browser_route, browser_navigate)*
+21. Go offline (`browser_network_state_set`), re-open `/inventory`, and report what breaks. *(browser_network_state_set, browser_navigate)*
 
 ## G8 - State & storage
 
 22. After logging in, inspect localStorage and cookies. Where does this app keep the session? (Login is client-side - there is no `/api/login`.) *(browser_localstorage_list, browser_cookie_list)*
-23. Save the storage state to a file, open a fresh context, load it, and confirm you are already signed in. *(browser_storage_state, browser_set_storage_state)*
-24. Clear the session storage and reload - are you logged out? *(browser_sessionstorage_clear, browser_reload)*
+23. Save the storage state to a file, then re-apply it with `browser_set_storage_state` and confirm the session is preserved. *(browser_storage_state, browser_set_storage_state)*
+24. Clear the session storage and re-open the page - are you logged out? *(browser_sessionstorage_clear, browser_navigate)*
 
 ## G9 - Playground patterns (one page each)
 
-25. **Forms** (`/playground/forms`): fill text, pick a select option, check a box, choose a radio, and upload a file. *(browser_fill_form, browser_select_option, browser_check, browser_file_upload)*
+25. **Forms** (`/playground/forms`): fill text, pick a select option, tick a checkbox (click it), choose a radio, and upload a file. *(browser_fill_form, browser_select_option, browser_click, browser_file_upload)*
 26. **Tables** (`/playground/tables`): sort a column, filter by text, page through results. *(browser_click, browser_type)*
 27. **Dialogs** (`/playground/dialogs`): accept an alert, accept a confirm, answer a prompt, and dismiss a modal with Escape. *(browser_handle_dialog, browser_press_key)*
 28. **Drag & Drop** (`/playground/dragdrop`): reorder the sortable list. *(browser_drag / browser_drop)*
@@ -166,14 +173,13 @@ result. Tools you should see are in *italics*.
 
 Tick a box once you have driven that capability against this app.
 
-- [ ] `planner_setup_page` + `browser_navigate`
+- [ ] `browser_navigate` / `browser_navigate_back` / `browser_tabs`
 - [ ] `browser_snapshot` (and saw why it beats a screenshot)
 - [ ] `browser_take_screenshot`
 - [ ] `browser_generate_locator`
 - [ ] `browser_type` / `browser_fill_form`
-- [ ] `browser_click`
+- [ ] `browser_click` (including a checkbox)
 - [ ] `browser_select_option`
-- [ ] `browser_check` / `browser_uncheck`
 - [ ] `browser_press_key`
 - [ ] `browser_hover`
 - [ ] `browser_drag` / `browser_drop`
@@ -188,11 +194,10 @@ Tick a box once you have driven that capability against this app.
 - [ ] `browser_network_state_set` (offline)
 - [ ] `browser_localstorage_*` / `browser_cookie_*` / `browser_sessionstorage_*`
 - [ ] `browser_storage_state` / `browser_set_storage_state`
-- [ ] `browser_tabs`
 - [ ] `browser_resize`
 - [ ] `browser_highlight` / `browser_annotate`
 - [ ] `browser_start_tracing` / `browser_start_video`
 
 When most boxes are ticked, you have seen what the MCP server can do. Stage 2 layers
-the house-style **skills** and the **Test Agents** on top - flip them on per
-`WORKSHOP_GUIDE.md`.
+the house-style **skills**, the **Test Agents**, and the `playwright-test` MCP on top -
+flip them on per `WORKSHOP_GUIDE.md`.

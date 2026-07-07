@@ -28,8 +28,9 @@
 
 - **G6.16 broken images** -> exactly one: Desk Lamp (`product-image-p-005`). For problem_user it appears on Field Recorder instead.
 - **G6.17 /api/products** -> `200`, `{ products: [...] }`, 6 items with `id/name/price/stock`. Stock: Backpack 14, Keyboard 7, Notebook 42, **Aeropress 0 (out of stock)**, Desk Lamp 3, **Field Recorder 1 (only 1 left)**.
-- **G7.19 empty stub** -> the grid (`data-test="inventory"`) renders with **zero cards; there is no empty-state message** (a gap worth discussing).
+- **G7.19 empty stub** -> with the correct shape `{ "products": [] }` the grid (`data-test="inventory"`) renders with **zero cards and no empty-state message** (a gap worth discussing). Payload shape matters: a **bare `[]`** (no `products` key) **crashes the route** with `TypeError: Cannot read properties of undefined (reading 'map')` behind a React error boundary - a real robustness bug worth demonstrating.
 - **G7.20 500 / G7.21 offline** -> graceful: the page shows `inventory-error` (role=alert) **"Couldn't load inventory. HTTP 500"** (or the fetch error). No crash. The sort control is disabled until load succeeds.
+- **G8.22-24 storage** -> session lives in `localStorage["workshop-auth"]` (zustand persist), cart in `localStorage["workshop-cart"]`; there is **no auth cookie** (client-side login). Gotcha: clearing **sessionStorage** (G8.24) does **not** log you out - nothing important is there; you must clear `localStorage["workshop-auth"]`. Saving then re-applying storage state (G8.23) round-trips the login.
 - **G11.36 locked_out** -> error text above; never reaches `/inventory`.
 - **G11.37 problem_user** -> the image/description **mismatch** (not a broken image).
 - **G11.38 glitch_user** -> the **cart-badge** off-by-one for ~600 ms (see the corrected exercise). It is a timing/render bug, not a network or console error - a good lesson that not every bug shows up in logs.

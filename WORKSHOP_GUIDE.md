@@ -19,11 +19,11 @@ npm test                          # tests/login.spec.ts passes -> you're ready
 Already wired in the repo (attendees do nothing extra):
 
 ```
-.mcp.json            -> playwright-test MCP server (Claude Code reads this)
+.mcp.json            -> playwright (general) + playwright-test MCP servers
 .claude/settings.json-> pre-enables the MCP server + sensible permissions
 .claude/agents/      -> planner, generator, healer
 .claude/skills/      -> playwright-cli + 8 house-style/workflow skills
-CLAUDE.md            -> project context, auto-loaded by Claude Code
+CLAUDE.stage2.md     -> project context; DISABLED in stage 1, restored for stage 2
 ```
 
 Smoke-check before attendees arrive:
@@ -46,45 +46,49 @@ Everyone uses the same stack, so there's no per-client branching this time:
 
 Smoke-test the AI wiring - in the Claude Code panel:
 
-> Use `planner_setup_page`, navigate to `/login`, and snapshot the page.
+> Go to `/login` and snapshot the page.
 
-A structured snapshot back = MCP is connected.
+A structured snapshot back = the general `playwright` MCP is connected. (Stage 1
+needs no `planner_setup_page` - that is a stage-2 test-MCP step.)
 
-> ⚠️ **The `planner_setup_page`-first rule.** `playwright-test` is a *test-runner*
-> MCP. Without `planner_setup_page`, every `browser_*` call returns *"must setup
-> test before interacting with the page."* This is the #1 attendee question -
-> point them at `CLAUDE.md` / the `playwright-mcp-workflow` skill. (For a quick
-> one-off, the `playwright-cli` skill drives a browser from Bash with no setup
-> ceremony.)
+> ⚠️ **Two MCP servers, gated by stage.** Stage 1 uses the general **`playwright`**
+> MCP - a raw browser driver: no setup ceremony, full network/storage/tracing.
+> Stage 2 adds **`playwright-test`** (`run-test-mcp-server`), which powers the Test
+> Agents and *does* need `planner_setup_page`. Full comparison:
+> [`MCP_SERVERS.md`](MCP_SERVERS.md).
 
 ## Stage gating - skills and Test Agents off first
 
-By default this repo ships **locked to stage 1**: the `Skill` tool and the three Test
-Agents (planner / generator / healer) are denied in `.claude/settings.json`, so the
-only AI surface is the raw `playwright-test` MCP. Attendees explore the app with
-`planner_setup_page` + `browser_*`, and nothing auto-invokes a skill or an agent.
+By default this repo ships **locked to stage 1**: the `Skill` tool, the three Test
+Agents (planner / generator / healer), and the `playwright-test` MCP are denied in
+`.claude/settings.json`, so the only AI surface is the general **`playwright`** MCP.
+Attendees explore the app with `browser_*` (no setup ceremony), and nothing
+auto-invokes a skill or an agent.
 
 When you're ready for **stage 2**, delete these lines from `permissions.deny` in
 `.claude/settings.json` and reload the window (Cmd/Ctrl-Shift-P -> Developer: Reload
 Window):
 
 ```json
+"mcp__playwright-test",
 "Skill",
 "Agent(playwright-test-planner)",
 "Agent(playwright-test-generator)",
 "Agent(playwright-test-healer)",
 ```
 
-Skills and the Test Agents then come online. Notes:
+Skills, the Test Agents, and their `playwright-test` MCP then come online. Notes:
 - `deny` beats `allow` and cannot be undone from `settings.local.json`, so enabling
-  stage 2 really does mean editing `settings.json` (delete the four lines).
-- MCP stays on the whole time; only skills and the three agents are gated.
+  stage 2 really does mean editing `settings.json` (delete the five lines).
+- The general `playwright` MCP stays on the whole time; skills, the three agents, and
+  the `playwright-test` MCP are what get gated.
 
 The full stage-1 exercise set - instructor-led demos, a bunch of attendee exercises,
 and a capabilities checklist covering the whole MCP toolset - is in
 [`exercises/stage-1-mcp-exploration.md`](exercises/stage-1-mcp-exploration.md). The
 **instructor answer key** (planted bugs, expected findings, data-test cheat sheet) is
-[`exercises/stage-1-answer-key.md`](exercises/stage-1-answer-key.md).
+[`exercises/stage-1-answer-key.md`](exercises/stage-1-answer-key.md). The two MCP
+servers (general vs test) are compared in [`MCP_SERVERS.md`](MCP_SERVERS.md).
 
 ## Suggested 3-hour session flow
 

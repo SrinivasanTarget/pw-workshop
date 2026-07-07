@@ -44,17 +44,18 @@ You should see 1 passing test. Open the report with `npm run report`.
    environment before launching VS Code. (The key is configured in the extension -
    it is **not** read from a repo file.)
 3. Everything else is already wired in the repo:
-   - `.mcp.json` - the `playwright-test` MCP server (Claude Code picks this up).
-     Approve it when prompted, or it's pre-enabled via `.claude/settings.json`.
+   - `.mcp.json` - the `playwright` (general) + `playwright-test` MCP servers,
+     pre-enabled via `.claude/settings.json`. Compared in `MCP_SERVERS.md`.
    - `.claude/agents/` - the planner / generator / healer Test Agents.
    - `.claude/skills/` - the house-style + workflow skills.
    - `CLAUDE.md` - project context, loaded into Claude Code automatically.
 
 Smoke-test the AI setup - in the Claude Code panel, ask:
 
-> Use `planner_setup_page`, navigate to `/login`, and snapshot the page.
+> Go to `/login` and snapshot the page.
 
-If you get a structured accessibility snapshot back, the MCP server is connected.
+If you get a structured accessibility snapshot back, the general `playwright` MCP is
+connected. (Stage 1 needs no `planner_setup_page` - see `MCP_SERVERS.md`.)
 
 ---
 
@@ -64,7 +65,7 @@ If you get a structured accessibility snapshot back, the MCP server is connected
 | ---------------------------------------------- | ----------------------------------------------------------- |
 | Run / debug / generate tests                   | **Playwright CLI** - `npm test`, `npm run test:ui`, codegen |
 | Poke the live page quickly from the terminal   | **`playwright-cli` skill** - `playwright-cli open/click/...` |
-| Explore a page live from inside Claude         | **playwright-test MCP** - `planner_setup_page` + `browser_*`|
+| Explore a page live from inside Claude         | **`playwright` MCP** - `browser_*`, no setup (stage 1)      |
 | Plan → generate → heal a feature's tests       | **Test Agents** in `.claude/agents/`                        |
 | Write tests the house way (SOLID, functional)  | **Skill** - `test-craftsmanship`                            |
 
@@ -99,8 +100,9 @@ npm run typecheck     # strict TypeScript check of the framework
 ```
 .claude/agents/     planner · generator · healer (Test Agents)
 .claude/skills/     playwright-cli + test-craftsmanship + workflow skills
-.mcp.json           playwright-test MCP server (Claude Code)
-CLAUDE.md           project context for the AI
+.mcp.json           playwright + playwright-test MCP servers
+CLAUDE.stage2.md    project context (off in stage 1; restored for stage 2)
+MCP_SERVERS.md      the two MCP servers (general vs test) compared
 exercises/          stage-1 raw-MCP exploration exercises (no skills/agents)
 src/                app.ts facade + actions/ (login) + api/ (products client)
 tests/              fixtures.ts (DI) + login (UI) + products-api (API) specs

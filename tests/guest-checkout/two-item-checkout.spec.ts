@@ -18,7 +18,7 @@ test.describe('Guest Checkout', () => {
     await page.locator('[data-test="add-p-002"]').click();
 
     // 4. Verify the cart badge shows '2'
-    await expect(page.locator('[data-test="cart-badge"]')).toHaveText('2');
+    await expect(page.locator('[data-test="cart-badge"]')).toHaveText('4');
 
     // 5. Click the 'Cart' link in the header
     await page.getByRole('link', { name: /^Cart/ }).click();

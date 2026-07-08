@@ -87,7 +87,12 @@ servers (general vs test) are compared in [`MCP_SERVERS.md`](MCP_SERVERS.md).
 
 The **stage-2 refactor exercises** - turning generic AI-written tests into house style
 with the skills + `CLAUDE.md` - are in
-[`exercises/stage-2-refactor.md`](exercises/stage-2-refactor.md).
+[`exercises/stage-2-refactor.md`](exercises/stage-2-refactor.md). That file leans on
+`playwright-locators` + `test-craftsmanship`; the **skill labs** in
+[`exercises/stage-2-skill-labs.md`](exercises/stage-2-skill-labs.md) give each other
+skill its own lab (debugging, bug-hunting, network mocking, API, fixtures/isolation, a
+craftsmanship review) - one instructor demo + attendee tasks apiece, grounded in the
+app's planted bugs.
 
 ## Suggested 3-hour session flow
 

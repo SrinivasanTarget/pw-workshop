@@ -17,7 +17,7 @@ test.describe('Guest Checkout', () => {
     await page.getByRole('link', { name: 'Cart1' }).click();
 
     // Click the 'Checkout' button
-    await page.locator('[data-test="checkout-btn"]').click();
+    await page.locator('[data-test="checkout"]').click();
 
     // Fill the First name field with 'Ada'
     await page.locator('[data-test="firstName"]').fill('Ada');

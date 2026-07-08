@@ -34,6 +34,19 @@ jobs:
           path: playwright-report/
           retention-days: 7
 
+      # The JSON report carries each failure's embedded attachments — including
+      # network-failures.txt from tests/fixtures.ts — so the Module 9 triage
+      # agent reads network evidence straight from this one self-contained file.
+      # Uploaded on every run (not just failures) so triage can also track test
+      # health / trends over time. Consume it in a triage job with
+      # actions/download-artifact, name: playwright-json-report.
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-json-report
+          path: test-results/results.json
+          retention-days: 7
+
   heal:
     needs: test
     # Only heal real failures, and never re-heal a heal PR (loop guard).
@@ -69,6 +82,24 @@ jobs:
         if: always()
         run: cat heal-summary.md >> "$GITHUB_STEP_SUMMARY" || true
 
+      # Gate the PR on what the healer changed. heal-meta.json.needsReview is
+      # true when the healer edited an assertion or skipped a test — edits that
+      # redefine expected behavior and could codify a regression as "correct".
+      # Those open as a DRAFT PR (cannot merge until a human marks it ready) with
+      # a needs-behavior-review label. Pure selector/timing fixes flow as a
+      # normal PR.
+      - name: Determine review gate
+        id: gate
+        if: always()
+        run: |
+          if [ -f heal-meta.json ] && grep -q '"needsReview": *true' heal-meta.json; then
+            echo "draft=true" >> "$GITHUB_OUTPUT"
+            echo "labels=self-healing,needs-behavior-review" >> "$GITHUB_OUTPUT"
+          else
+            echo "draft=false" >> "$GITHUB_OUTPUT"
+            echo "labels=self-healing" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Open PR with healed tests
         uses: peter-evans/create-pull-request@v6
         with:
@@ -77,4 +108,5 @@ jobs:
           commit-message: 'ci: heal failing Playwright tests'
           title: 'ci: heal failing Playwright tests (${{ github.workflow }} run ${{ github.run_id }})'
           body-path: heal-summary.md
-          labels: self-healing
+          labels: ${{ steps.gate.outputs.labels }}
+          draft: ${{ steps.gate.outputs.draft }}

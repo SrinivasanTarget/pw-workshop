@@ -20,3 +20,4 @@ langgraph-agent/.env
 
 # Self-healing artifacts (langgraph-agent heal runs)
 /heal-summary.md
+/heal-meta.json

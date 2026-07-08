@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../fixtures';
 
 test.describe('Guest Checkout', () => {
   test('Empty Last name shows validation error', async ({ page }) => {

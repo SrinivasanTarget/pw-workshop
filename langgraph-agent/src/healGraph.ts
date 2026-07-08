@@ -69,6 +69,54 @@ function runSuite(): SuiteRun {
 }
 
 // ---------------------------------------------------------------------------
+// Behavior-review detection (deterministic — reads the healer's actual diff)
+// ---------------------------------------------------------------------------
+
+export interface ReviewFlag {
+  file: string;
+  kind: "assertion" | "skipped";
+  line: string;
+}
+
+/**
+ * Scan the working-tree diff for changes that redefine *expected behavior*
+ * rather than just how a test reaches an element. Selector/wait fixes are
+ * mechanical and safe to fast-track; assertion edits (an intended copy/price
+ * change vs. a real regression) and test.fixme/skip (silently dropped
+ * coverage) look identical from the outside, so a human must confirm them.
+ * Based on the real git diff, not the healer's self-report.
+ */
+function detectReviewFlags(): ReviewFlag[] {
+  const diff =
+    spawnSync("git", ["diff", "-U0", "--", "tests/"], {
+      cwd: REPO_ROOT,
+      encoding: "utf8",
+    }).stdout ?? "";
+
+  const ASSERTION = /\bexpect\s*\(|\.\s*to[A-Z]\w*\s*\(/; // expect(...) or .toHaveText( / .toBeVisible( ...
+  const SKIP = /\btest\.(fixme|skip)\b/;
+
+  const flags: ReviewFlag[] = [];
+  let file = "";
+  for (const raw of diff.split("\n")) {
+    if (raw.startsWith("+++ b/")) {
+      file = raw.slice("+++ b/".length);
+      continue;
+    }
+    // Skip file headers / hunk markers; a real change line has exactly one leading +/-.
+    if (raw.startsWith("+++") || raw.startsWith("---") || raw.startsWith("@@") || raw.startsWith("diff ")) {
+      continue;
+    }
+    if (!raw.startsWith("+") && !raw.startsWith("-")) continue;
+
+    const content = raw.slice(1);
+    if (SKIP.test(content)) flags.push({ file, kind: "skipped", line: raw.trim() });
+    else if (ASSERTION.test(content)) flags.push({ file, kind: "assertion", line: raw.trim() });
+  }
+  return flags;
+}
+
+// ---------------------------------------------------------------------------
 // Local file tools for the healer (replace Claude Code's Read/Edit/Write)
 // ---------------------------------------------------------------------------
 
@@ -156,11 +204,15 @@ const HealState = Annotation.Root({
   }),
   allPassing: Annotation<boolean>,
   summary: Annotation<string>,
+  needsReview: Annotation<boolean>,
 });
 
 export type HealStateType = typeof HealState.State;
 
 export const HEAL_SUMMARY_FILE = path.join(REPO_ROOT, "heal-summary.md");
+
+/** Machine-readable gate for CI: { needsReview } drives draft + label on the heal PR. */
+export const HEAL_META_FILE = path.join(REPO_ROOT, "heal-meta.json");
 
 // ---------------------------------------------------------------------------
 // Graph factory
@@ -230,6 +282,7 @@ export function buildHealGraph(playwrightTestTools: StructuredToolInterface[]) {
   async function verify(state: HealStateType) {
     let summary: string;
     let allPassing: boolean;
+    let needsReview = false;
 
     if (state.allPassing) {
       allPassing = true;
@@ -238,9 +291,27 @@ export function buildHealGraph(playwrightTestTools: StructuredToolInterface[]) {
       console.log("[verify] re-running the suite...");
       const { failures, stats } = runSuite();
       allPassing = failures.length === 0;
+
+      // Did the healer change what "correct" means (assertions / skips), not
+      // just how a test reaches an element? Those edits need human eyes.
+      const reviewFlags = detectReviewFlags();
+      needsReview = reviewFlags.length > 0;
+      const reviewSection = needsReview
+        ? [
+            "## ⚠️ Needs behavior review",
+            "",
+            "The healer changed assertions or skipped tests to reach green. These edits redefine expected behavior — confirm each reflects an **intended** app change, not a regression the healer papered over:",
+            "",
+            ...reviewFlags.map((f) => `- \`${f.file}\` (${f.kind}): \`${f.line}\``),
+            "",
+          ]
+        : [];
+
       summary = [
         "# Heal report",
         "",
+        // Warning first, so a reviewer sees it before the green checkmark.
+        ...reviewSection,
         "## Originally failing",
         ...state.failures.flatMap((f) => f.tests.map((t) => `- \`${f.file}\` › ${t.title}`)),
         "",
@@ -258,8 +329,13 @@ export function buildHealGraph(playwrightTestTools: StructuredToolInterface[]) {
     }
 
     fs.writeFileSync(HEAL_SUMMARY_FILE, summary, "utf8");
-    console.log(`[verify] ${allPassing ? "suite is green" : "failures remain"} — summary written to heal-summary.md`);
-    return { allPassing, summary };
+    fs.writeFileSync(HEAL_META_FILE, JSON.stringify({ needsReview }, null, 2), "utf8");
+    console.log(
+      `[verify] ${allPassing ? "suite is green" : "failures remain"}` +
+        (needsReview ? " — ⚠️ assertion/skip changes need review" : "") +
+        " — summary written to heal-summary.md"
+    );
+    return { allPassing, summary, needsReview };
   }
 
   return new StateGraph(HealState)

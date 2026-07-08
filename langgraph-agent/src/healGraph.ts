@@ -209,7 +209,14 @@ export function buildHealGraph(playwrightTestTools: StructuredToolInterface[]) {
             { recursionLimit: 150 }
           );
           const last = result.messages.at(-1);
-          const note = typeof last?.content === "string" ? last.content : JSON.stringify(last?.content);
+          // Keep only the text blocks — drop thinking/signature blocks from the report.
+          const note =
+            typeof last?.content === "string"
+              ? last.content
+              : (last?.content ?? [])
+                  .filter((block: any) => block.type === "text")
+                  .map((block: any) => block.text)
+                  .join("\n") || "(healer returned no summary text)";
           healLog.push(`### ${spec.file} › ${failing.title}\n\n${note}`);
         } catch (err) {
           healLog.push(`### ${spec.file} › ${failing.title}\n\n❌ Healer error: ${String(err)}`);

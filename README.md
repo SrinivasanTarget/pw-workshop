@@ -103,7 +103,7 @@ npm run typecheck     # strict TypeScript check of the framework
 .mcp.json           playwright + playwright-test MCP servers
 CLAUDE.stage2.md    project context (off in stage 1; rename to CLAUDE.md for stage 2)
 MCP_SERVERS.md      the two MCP servers (general vs test) compared
-exercises/          stage-1 raw-MCP exploration + stage-2 refactor exercises
+exercises/          stage-1 raw-MCP exploration + stage-2 refactor + stage-2 skill labs
 src/, tests/        you build these to house style (App facade, actions, api, fixtures, specs)
 WORKSHOP_GUIDE.md   instructor session flow + exercises
 ```

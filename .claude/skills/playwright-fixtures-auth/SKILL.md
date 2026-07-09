@@ -1,12 +1,12 @@
 ---
 name: playwright-fixtures-auth
-description: Build custom Playwright fixtures, skip repeated login with storage state, and keep tests isolated so they run in any order in parallel. Use when tests need auth, share setup, or are slow because every test re-logs-in.
+description: Covers custom Playwright fixtures, skipping repeated login with storage state, and test isolation so specs run in any order in parallel. Use when tests need auth, share setup, or are slow because every test re-logs-in.
 ---
 
 # Fixtures, auth & test isolation
 
-`tests/fixtures.ts` already injects an `app` facade - that *is* Dependency Injection
-(see [[test-craftsmanship]]). During the workshop you build on it:
+In this workshop you build a fixtures file that injects an `app` facade - that *is*
+Dependency Injection (see [[test-craftsmanship]]). From there you add:
 - an **authenticated** `app` fixture, composed on top of the base `app`
 - a storage-state reuse test across isolated contexts
 

@@ -1,10 +1,10 @@
 # Playwright + Claude Code Workshop
 
 Learn Playwright with an AI pair - driven entirely from **VS Code + the Claude Code
-extension** (Anthropic API key). One repo, four ways to automate a real web app:
-the **Playwright CLI**, the **playwright-test MCP server**, three **Test Agents**
-(planner / generator / healer), and a set of on-demand **Skills** that encode house
-style.
+extension** (Anthropic API key). One repo, staged: explore a real web app with the
+**browser MCP**, then use on-demand **Skills** + a **`CLAUDE.md`** to write and
+refactor tests to a clean house style. Three **Test Agents** (planner / generator /
+healer) wait in a later stage.
 
 App under test: **https://playwright-workshop.pages.dev** - a SauceDemo-style store
 (no local server to run).
@@ -27,13 +27,13 @@ npm install
 npm run install:browsers      # downloads Chromium for Playwright
 ```
 
-Then confirm the reference test passes:
+Then confirm the tooling works:
 
 ```bash
-npm test                      # runs tests/login.spec.ts against the deployed app
+npm test                      # runs the seed spec against the deployed app
 ```
 
-You should see 1 passing test. Open the report with `npm run report`.
+You should see 1 passing test (the seed). Open the report with `npm run report`.
 
 ### Wire up Claude Code
 
@@ -46,31 +46,31 @@ You should see 1 passing test. Open the report with `npm run report`.
 3. Everything else is already wired in the repo:
    - `.mcp.json` - the `playwright` (general) + `playwright-test` MCP servers,
      pre-enabled via `.claude/settings.json`. Compared in `MCP_SERVERS.md`.
-   - `.claude/agents/` - the planner / generator / healer Test Agents.
-   - `.claude/skills/` - the house-style + workflow skills.
-   - `CLAUDE.md` - project context, loaded into Claude Code automatically.
+   - `.claude/skills/` - the house-style + workflow skills (on in stage 2).
+   - `.claude/agents/` - the planner / generator / healer Test Agents (a later stage).
+   - `CLAUDE.stage2.md` - project context; disabled in stage 1, renamed to `CLAUDE.md`
+     for stage 2.
 
 Smoke-test the AI setup - in the Claude Code panel, ask:
 
 > Go to `/login` and snapshot the page.
 
 If you get a structured accessibility snapshot back, the general `playwright` MCP is
-connected. (Stage 1 needs no `planner_setup_page` - see `MCP_SERVERS.md`.)
+connected. (Stages 1-2 need no `planner_setup_page` - see `MCP_SERVERS.md`.)
 
 ---
 
-## The four surfaces
+## The surfaces
 
-| You want to…                                   | Reach for                                                    |
-| ---------------------------------------------- | ----------------------------------------------------------- |
-| Run / debug / generate tests                   | **Playwright CLI** - `npm test`, `npm run test:ui`, codegen |
-| Poke the live page quickly from the terminal   | **`playwright-cli` skill** - `playwright-cli open/click/...` |
-| Explore a page live from inside Claude         | **`playwright` MCP** - `browser_*`, no setup (stage 1)      |
-| Plan → generate → heal a feature's tests       | **Test Agents** in `.claude/agents/`                        |
-| Write tests the house way (SOLID, functional)  | **Skill** - `test-craftsmanship`                            |
+| You want to…                                    | Reach for                                                     |
+| ----------------------------------------------- | ------------------------------------------------------------- |
+| Explore / drive the live app from inside Claude | **`playwright` browser MCP** - `browser_*`, no setup ceremony |
+| Run / debug tests                               | **Playwright CLI** - `npm test`, `npm run test:ui`, codegen   |
+| Write tests the house way (SOLID, functional)   | **Skills** - `test-craftsmanship`, `playwright-locators`, ... |
+| Plan → generate → heal a feature's tests        | **Test Agents** in `.claude/agents/` (a later stage)          |
 
 Start any Playwright task by letting Claude read the **`playwright-mcp-workflow`**
-skill - it's the orchestrator that decides which surface fits.
+skill - it orients you: browser MCP to observe, house-style skills to write.
 
 ## Test accounts
 
@@ -98,15 +98,13 @@ npm run typecheck     # strict TypeScript check of the framework
 ## Where things live
 
 ```
-.claude/agents/     planner · generator · healer (Test Agents)
-.claude/skills/     playwright-cli + test-craftsmanship + workflow skills
+.claude/agents/     planner · generator · healer (Test Agents; a later stage)
+.claude/skills/     8 house-style + workflow skills (on in stage 2)
 .mcp.json           playwright + playwright-test MCP servers
-CLAUDE.stage2.md    project context (off in stage 1; restored for stage 2)
+CLAUDE.stage2.md    project context (off in stage 1; rename to CLAUDE.md for stage 2)
 MCP_SERVERS.md      the two MCP servers (general vs test) compared
-exercises/          stage-1 raw-MCP exploration exercises (no skills/agents)
-src/                app.ts facade + actions/ (login) + api/ (products client)
-tests/              fixtures.ts (DI) + login (UI) + products-api (API) specs
-specs/              test plans the planner agent writes
+exercises/          stage-1 raw-MCP exploration + stage-2 refactor + stage-2 skill labs
+src/, tests/        you build these to house style (App facade, actions, api, fixtures, specs)
 WORKSHOP_GUIDE.md   instructor session flow + exercises
 ```
 

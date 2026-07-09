@@ -17,13 +17,31 @@
       "mcp__playwright-test"
     ],
     "deny": [
-      "Skill",
       "Agent(playwright-test-planner)",
       "Agent(playwright-test-generator)",
       "Agent(playwright-test-healer)",
       "mcp__playwright-test",
       "mcp__playwright__browser_run_code_unsafe",
       "mcp__playwright-test__browser_run_code_unsafe"
+    ]
+  },
+
+  "// HOOKS": "PreToolUse linter enforces the CLAUDE.md house style on every .ts edit: exit 2 blocks the write and Claude reads the message and rewrites its own edit. Stop hook runs a typecheck. Reload the window after editing this file for hooks to take effect.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/house-style-lint.js\"" }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          { "type": "command", "command": "npm run typecheck --silent 2>&1 | tail -5 || true" }
+        ]
+      }
     ]
   }
 }

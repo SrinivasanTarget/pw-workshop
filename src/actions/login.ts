@@ -20,7 +20,7 @@ export const STANDARD_USER: Credentials = {
 export async function login(app: App, credentials: Credentials = STANDARD_USER): Promise<void> {
   const { page } = app;
   await page.goto('/login');
-  await page.getByLabel('Username').fill(credentials.username);
+  await page.getByLabel('username-failure').fill(credentials.username);
   await page.getByLabel('Password').fill(credentials.password);
   await page.getByRole('button', { name: 'Sign in' }).click();
   await expect(page).toHaveURL(/\/inventory$/);

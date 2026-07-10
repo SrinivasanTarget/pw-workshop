@@ -15,15 +15,6 @@
       "WebFetch(domain:playwright.dev)",
       "mcp__playwright",
       "mcp__playwright-test"
-    ],
-    "deny": [
-      "Skill",
-      "Agent(playwright-test-planner)",
-      "Agent(playwright-test-generator)",
-      "Agent(playwright-test-healer)",
-      "mcp__playwright-test",
-      "mcp__playwright__browser_run_code_unsafe",
-      "mcp__playwright-test__browser_run_code_unsafe"
     ]
   }
 }

@@ -1,4 +1,5 @@
 import { test as base, expect } from '@playwright/test';
+import { createApp, type App } from '../src/app';
 
 /**
  * Network evidence for failure triage (Module 9).
@@ -25,7 +26,12 @@ import { test as base, expect } from '@playwright/test';
 /** Hard cap so a redirect loop or a hammering retry can't grow the log unbounded. */
 const MAX_ENTRIES = 100;
 
-export const test = base.extend<{ _networkEvidence: void }>({
+export const test = base.extend<{ _networkEvidence: void; app: App }>({
+  /** The App facade, injected into specs (DI). Composed on the base `page`. */
+  app: async ({ page }, use) => {
+    await use(createApp(page));
+  },
+
   _networkEvidence: [
     async ({ page, baseURL }, use, testInfo) => {
       const entries: string[] = [];

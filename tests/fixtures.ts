@@ -1,5 +1,79 @@
 import { test as base, expect } from '@playwright/test';
 import { createApp, type App } from '../src/app';
+import { login, type Credentials } from '../src/actions/login';
+import {
+  addToCart,
+  addItems,
+  openCart,
+  proceedToCheckout,
+  fillShipping,
+  placeOrder,
+  openCheckoutWithItem,
+  visitCheckout,
+  type ShippingDetails,
+  type ShippingField,
+} from '../src/actions/checkout';
+import {
+  expectOnInventory,
+  expectCartCount,
+  expectCartBadgeEmpty,
+  expectCartLineItem,
+  expectCartTotal,
+  expectCheckoutAvailable,
+  expectOrderSummary,
+  expectOrderConfirmed,
+  expectCartPageEmpty,
+  expectRedirectedToCart,
+  expectShippingFormEmpty,
+  expectStillOnCheckout,
+  expectRequiredFieldError,
+  expectNoFieldError,
+} from '../src/expectations/checkout';
+import type { Product } from '../src/catalog';
+
+/**
+ * The composition root wires the App into two intent-named namespaces so specs
+ * never thread `app` through every call (DI). `shop` is the actions/commands a
+ * shopper performs; `verify` is the web-first assertions. The split keeps
+ * *doing* and *checking* on separate seams (SRP) and reads as prose:
+ * `await shop.addItems(...)`, `await verify.orderConfirmed()`. Delegation lives
+ * here in the wiring layer, not as an extra abstraction in the domain.
+ */
+function createShop(app: App) {
+  return {
+    login: (credentials?: Credentials) => login(app, credentials),
+    addToCart: (productId: string) => addToCart(app, productId),
+    addItems: (products: readonly Product[]) => addItems(app, products),
+    openCart: () => openCart(app),
+    proceedToCheckout: () => proceedToCheckout(app),
+    fillShipping: (details: ShippingDetails) => fillShipping(app, details),
+    placeOrder: () => placeOrder(app),
+    openCheckoutWithItem: (productId: string) => openCheckoutWithItem(app, productId),
+    visitCheckout: () => visitCheckout(app),
+  };
+}
+
+function createVerify(app: App) {
+  return {
+    onInventory: () => expectOnInventory(app),
+    cartCount: (count: number) => expectCartCount(app, count),
+    cartBadgeEmpty: () => expectCartBadgeEmpty(app),
+    cartLineItem: (product: Product) => expectCartLineItem(app, product),
+    cartTotal: (products: readonly Product[]) => expectCartTotal(app, products),
+    checkoutAvailable: () => expectCheckoutAvailable(app),
+    orderSummary: (products: readonly Product[]) => expectOrderSummary(app, products),
+    orderConfirmed: () => expectOrderConfirmed(app),
+    cartPageEmpty: () => expectCartPageEmpty(app),
+    redirectedToCart: () => expectRedirectedToCart(app),
+    shippingFormEmpty: () => expectShippingFormEmpty(app),
+    stillOnCheckout: () => expectStillOnCheckout(app),
+    requiredFieldError: (field: ShippingField) => expectRequiredFieldError(app, field),
+    noFieldError: (field: ShippingField) => expectNoFieldError(app, field),
+  };
+}
+
+export type Shop = ReturnType<typeof createShop>;
+export type Verify = ReturnType<typeof createVerify>;
 
 /**
  * Network evidence for failure triage (Module 9).
@@ -26,10 +100,20 @@ import { createApp, type App } from '../src/app';
 /** Hard cap so a redirect loop or a hammering retry can't grow the log unbounded. */
 const MAX_ENTRIES = 100;
 
-export const test = base.extend<{ _networkEvidence: void; app: App }>({
+export const test = base.extend<{ _networkEvidence: void; app: App; shop: Shop; verify: Verify }>({
   /** The App facade, injected into specs (DI). Composed on the base `page`. */
   app: async ({ page }, use) => {
     await use(createApp(page));
+  },
+
+  /** Actions bound to this test's App — the commands a shopper performs. */
+  shop: async ({ app }, use) => {
+    await use(createShop(app));
+  },
+
+  /** Assertions bound to this test's App — web-first checks, read as `verify.x()`. */
+  verify: async ({ app }, use) => {
+    await use(createVerify(app));
   },
 
   _networkEvidence: [

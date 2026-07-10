@@ -1,14 +1,16 @@
 import { expect, type Locator } from '@playwright/test';
 import type { App } from '../app';
+import type { Product } from '../catalog';
 
 /**
  * Guest-checkout business actions — the flows the checkout specs share, each one
  * thing and reused (SRP + DRY). Like the `login` action, these depend on the
  * `App` facade rather than poking `page` globals (the Dependency Rule), and the
  * `data-test` / role locators live here in one place instead of copy-pasted
- * across specs. Web-first behavioural assertions stay in the specs; the only
- * `expect`s here are navigation guards that a flow reached its destination —
- * the same pattern `login` uses to wait for `/inventory`.
+ * across specs. Web-first behavioural assertions live in
+ * `src/expectations/checkout.ts`; the only `expect`s here are navigation guards
+ * that a flow reached its destination — the same pattern `login` uses to wait
+ * for `/inventory`.
  */
 
 export interface ShippingDetails {
@@ -27,6 +29,15 @@ export const STANDARD_SHIPPING: Required<ShippingDetails> = {
 /** Add a product to the cart by its catalog id (e.g. `'p-001'`). */
 export async function addToCart(app: App, productId: string): Promise<void> {
   await app.page.getByTestId(`add-${productId}`).click();
+}
+
+/**
+ * Add several catalog products to the cart, in order. Takes a list so a spec
+ * scales from two items to ten by extending the array, not by repeating
+ * add-and-check lines (DRY). One responsibility — add the given products.
+ */
+export async function addItems(app: App, products: readonly Product[]): Promise<void> {
+  for (const product of products) await addToCart(app, product.id);
 }
 
 /**
@@ -75,11 +86,6 @@ export async function openCheckoutWithItem(app: App, productId: string): Promise
   await proceedToCheckout(app);
 }
 
-/** Navigate straight to `/cart` by URL — used to probe direct-route access. */
-export async function visitCart(app: App): Promise<void> {
-  await app.page.goto('/cart');
-}
-
 /** Navigate straight to `/checkout` by URL — used to probe direct-route access. */
 export async function visitCheckout(app: App): Promise<void> {
   await app.page.goto('/checkout');
@@ -93,19 +99,59 @@ export async function visitCheckout(app: App): Promise<void> {
  */
 export type ShippingField = keyof Required<ShippingDetails>;
 
+/** The inventory page heading, shown once the shopper is browsing products. */
+export function inventoryHeading(app: App): Locator {
+  return app.page.getByRole('heading', { name: 'Products', level: 1 });
+}
+
 /** The header Cart link (its accessible name carries the badge count). */
 export function cartLink(app: App): Locator {
   return app.page.getByRole('link', { name: /^Cart/ });
 }
 
+/** A cart line item by catalog id (e.g. `'p-001'`), carrying its name and price. */
+export function cartLineItem(app: App, productId: string): Locator {
+  return app.page.getByTestId(`cart-item-${productId}`);
+}
+
+/** The cart's running total amount. */
+export function cartTotal(app: App): Locator {
+  return app.page.getByTestId('cart-total');
+}
+
+/** The shipping form on the checkout page. */
+export function checkoutForm(app: App): Locator {
+  return app.page.getByTestId('checkout-form');
+}
+
+/** A shipping input by field name. */
+export function shippingField(app: App, field: ShippingField): Locator {
+  return app.page.getByTestId(field);
+}
+
+/** The order-summary subtotal amount (items only). */
+export function summarySubtotal(app: App): Locator {
+  return app.page.getByTestId('summary-subtotal');
+}
+
+/** The order-summary tax amount. */
+export function summaryTax(app: App): Locator {
+  return app.page.getByTestId('summary-tax');
+}
+
+/** The order-summary grand total. */
+export function summaryTotal(app: App): Locator {
+  return app.page.getByTestId('summary-total');
+}
+
+/** The order reference shown on the confirmation page. */
+export function orderId(app: App): Locator {
+  return app.page.getByTestId('order-id');
+}
+
 /** The cart-count badge — absent from the DOM while the cart is empty. */
 export function cartBadge(app: App): Locator {
   return app.page.getByTestId('cart-badge');
-}
-
-/** A line item listed on the cart page, by product name. */
-export function cartItem(app: App, name: string): Locator {
-  return app.page.getByRole('heading', { name, level: 3 });
 }
 
 /** The Checkout form's page heading. */
@@ -123,11 +169,6 @@ export function orderSummaryItem(app: App, name: string): Locator {
   return app.page.getByText(name);
 }
 
-/** The order-summary subtotal amount (e.g. `'$29.99'`). */
-export function subtotal(app: App, amount: string): Locator {
-  return app.page.getByText(amount);
-}
-
 /** The inline required-field error for a shipping field. */
 export function fieldError(app: App, field: ShippingField): Locator {
   return app.page.getByTestId(`error-${field}`);
@@ -143,12 +184,17 @@ export function continueShoppingLink(app: App): Locator {
   return app.page.getByRole('link', { name: 'Continue shopping' });
 }
 
-/** The empty-cart message shown on `/cart` when nothing has been added. */
-export function emptyCartMessage(app: App): Locator {
-  return app.page.getByText('Your cart is empty.');
-}
-
 /** The Back to inventory link shown on the empty cart. */
 export function backToInventoryLink(app: App): Locator {
   return app.page.getByRole('link', { name: 'Back to inventory' });
+}
+
+/** The cart page's own heading. */
+export function cartPageHeading(app: App): Locator {
+  return app.page.getByRole('heading', { name: 'Your cart', level: 1 });
+}
+
+/** The empty-cart marker shown on `/cart` when nothing has been added. */
+export function emptyCart(app: App): Locator {
+  return app.page.getByTestId('cart-empty');
 }

@@ -12,7 +12,10 @@
     },
     "playwright-test": {
       "command": "npx",
-      "args": ["playwright", "run-test-mcp-server"]
+      "args": [
+        "playwright",
+        "run-test-mcp-server"
+      ]
     }
   }
 }

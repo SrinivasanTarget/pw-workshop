@@ -1,6 +1,6 @@
 ---
 name: test-craftsmanship
-description: The house craft for this repo - SOLID, DRY, clean code, the Dependency Rule, code smells, and design-pattern discipline (Uncle Bob's canon) applied to test automation for UI and API. Read when writing, refactoring, or reviewing test code, or deciding how much structure a framework needs. Explains why we reject the Page Object Model and use lightweight functional helpers instead.
+description: The house craft for this repo - SOLID, DRY, clean code, the Dependency Rule, code smells, and design-pattern discipline (Uncle Bob's canon) applied to test automation for UI and API. Use when writing, refactoring, or reviewing test code, or deciding how much structure a framework needs. Explains why this repo rejects the Page Object Model in favor of lightweight functional helpers.
 ---
 
 # Test craftsmanship
@@ -40,11 +40,11 @@ Bob's books and the community `uncle-bob-craft` skill.)
 
 | Principle | In this repo |
 |---|---|
-| **SRP** - one reason to change | `login` owns the login flow; `src/api/products.ts` owns that endpoint; the `App` facade owns the driver seam. A login-screen change touches one file. |
+| **SRP** - one reason to change | A `login` action owns the login flow; a products API client owns that endpoint; the thin `App` facade owns the driver seam. A login-screen change touches one file. |
 | **OCP** - open to extension | Add a new action/query as a new function; you stop editing an ever-growing god-object. |
 | **LSP** - substitutability | Anything typed `App` works anywhere an `App` is expected - including a future authenticated variant. |
 | **ISP** - small interfaces | API helpers take the narrow `APIRequestContext`, not the whole `App`. Depend on exactly what you use. |
-| **DIP** - depend on abstractions | Actions depend on the `App` facade, not on raw Playwright globals. The concrete `page`/`request` are injected in `tests/fixtures.ts`. |
+| **DIP** - depend on abstractions | Actions depend on the `App` facade, not on raw Playwright globals. The concrete `page`/`request` are injected by the `app` fixture. |
 
 ## The Dependency Rule (Clean Architecture)
 
@@ -99,12 +99,15 @@ The POM is the industry default, and it fights the principles above:
 
 ## One model, UI or API
 
-The same `App` drives the browser or, via `src/api`, calls HTTP directly. A hybrid test
+The same `App` drives the browser or, via a typed API client, calls HTTP directly. A hybrid test
 seeds state through the API (fast, reliable) and asserts through the UI. The principles
 don't change between UI and API - only the collaborator does ([[playwright-api-testing]],
 [[playwright-fixtures-auth]]).
 
-## This repo's shape
+## The shape to refactor toward
+
+Generic AI-written tests inline everything - locators, actions, and assertions in the
+spec. Refactor toward this layout (you build it as you go; it does not exist yet):
 
 ```
 src/app.ts         the App facade + createApp: the driver seam tests depend on (DIP)

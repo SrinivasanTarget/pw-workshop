@@ -2,7 +2,8 @@
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
 
   "// WORKSHOP STAGE 1 (default)": "Exploration runs on the general 'playwright' MCP only (full browser surface: navigate/click/snapshot, network route, storage, tracing, verify - and no planner_setup_page ceremony). Skills, the planner/generator/healer Test Agents, and the 'playwright-test' MCP are DISABLED. Hard block: deny beats allow and cannot be re-enabled from settings.local.json.",
-  "// ENABLE STAGE 2": "Delete the 'mcp__playwright-test', 'Skill', and 'Agent(...)' lines from permissions.deny below, then reload the window (Cmd/Ctrl-Shift-P -> Developer: Reload Window). The Test Agents and their playwright-test MCP come online alongside the general MCP. See WORKSHOP_GUIDE.md.",
+  "// ENABLE STAGE 2 (skills + CLAUDE.md)": "Delete the 'Skill' line from permissions.deny below AND rename CLAUDE.stage2.md -> CLAUDE.md, then reload the window (Cmd/Ctrl-Shift-P -> Developer: Reload Window). The eight house-style skills + CLAUDE.md come online; the browser MCP stays on. See WORKSHOP_GUIDE.md.",
+  "// ENABLE A LATER STAGE (Test Agents)": "Also delete the 'mcp__playwright-test' and three 'Agent(playwright-test-*)' lines from permissions.deny to bring the planner/generator/healer Test Agents and their playwright-test MCP online.",
 
   "enableAllProjectMcpServers": true,
   "permissions": {
@@ -14,15 +15,6 @@
       "WebFetch(domain:playwright.dev)",
       "mcp__playwright",
       "mcp__playwright-test"
-    ],
-    "deny": [
-      "Skill",
-      "Agent(playwright-test-planner)",
-      "Agent(playwright-test-generator)",
-      "Agent(playwright-test-healer)",
-      "mcp__playwright-test",
-      "mcp__playwright__browser_run_code_unsafe",
-      "mcp__playwright-test__browser_run_code_unsafe"
     ]
   }
 }

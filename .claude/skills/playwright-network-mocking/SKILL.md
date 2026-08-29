@@ -1,6 +1,6 @@
 ---
 name: playwright-network-mocking
-description: Make tests deterministic and fast by controlling the network - page.route for stubs, HAR record/replay, request/response modification, WebSocket mocking. Use when tests are flaky due to a slow/unreliable backend, when testing edge-case responses, or when running CI without external services.
+description: Controls the network to make tests deterministic and fast - page.route for stubs, HAR record/replay, request/response modification, WebSocket mocking. Use when tests are flaky due to a slow/unreliable backend, when testing edge-case responses, or when running CI without external services.
 ---
 
 # Network mocking & interception

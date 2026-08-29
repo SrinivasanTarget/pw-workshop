@@ -1,6 +1,6 @@
 ---
 name: playwright-locators
-description: Pick locators that survive UI changes and lean on Playwright's auto-waiting to kill flakes. Use when authoring or refactoring a spec, replacing brittle CSS/XPath, or chasing flaky failures.
+description: Guides locator choice so selectors survive UI changes, and leans on Playwright's auto-waiting to kill flakes. Use when authoring or refactoring a spec, replacing brittle CSS/XPath, or chasing flaky failures.
 ---
 
 # Locators & auto-wait

@@ -13,7 +13,7 @@ no local app server to babysit. Everything targets `baseURL` from
 ```bash
 npm install
 npm run install:browsers          # Chromium for Playwright
-npm test                          # tests/login.spec.ts passes -> you're ready
+npm test                          # the seed spec passes -> tooling is ready
 ```
 
 Already wired in the repo (attendees do nothing extra):
@@ -21,15 +21,15 @@ Already wired in the repo (attendees do nothing extra):
 ```
 .mcp.json            -> playwright (general) + playwright-test MCP servers
 .claude/settings.json-> pre-enables the MCP server + sensible permissions
-.claude/agents/      -> planner, generator, healer
-.claude/skills/      -> playwright-cli + 8 house-style/workflow skills
+.claude/agents/      -> planner, generator, healer (a later stage)
+.claude/skills/      -> 8 house-style + workflow skills
 CLAUDE.stage2.md     -> project context; DISABLED in stage 1, restored for stage 2
 ```
 
 Smoke-check before attendees arrive:
 
 ```bash
-npm test                          # reference test passes
+npm test                          # the seed spec passes
 npm run test:ui                   # UI mode opens
 ```
 
@@ -48,16 +48,16 @@ Smoke-test the AI wiring - in the Claude Code panel:
 
 > Go to `/login` and snapshot the page.
 
-A structured snapshot back = the general `playwright` MCP is connected. (Stage 1
-needs no `planner_setup_page` - that is a stage-2 test-MCP step.)
+A structured snapshot back = the general `playwright` MCP is connected. (Stages 1-2
+need no `planner_setup_page` - that is a later-stage test-MCP step.)
 
-> ⚠️ **Two MCP servers, gated by stage.** Stage 1 uses the general **`playwright`**
-> MCP - a raw browser driver: no setup ceremony, full network/storage/tracing.
-> Stage 2 adds **`playwright-test`** (`run-test-mcp-server`), which powers the Test
-> Agents and *does* need `planner_setup_page`. Full comparison:
+> ⚠️ **Two MCP servers, gated by stage.** Stages 1-2 use the general **`playwright`**
+> MCP - a raw browser driver: no setup ceremony, full network/storage/tracing. A
+> **later stage** adds **`playwright-test`** (`run-test-mcp-server`), which powers the
+> Test Agents and *does* need `planner_setup_page`. Full comparison:
 > [`MCP_SERVERS.md`](MCP_SERVERS.md).
 
-## Stage gating - skills and Test Agents off first
+## Stage gating - skills off first, agents later
 
 By default this repo ships **locked to stage 1**: the `Skill` tool, the three Test
 Agents (planner / generator / healer), and the `playwright-test` MCP are denied in
@@ -65,23 +65,18 @@ Agents (planner / generator / healer), and the `playwright-test` MCP are denied 
 Attendees explore the app with `browser_*` (no setup ceremony), and nothing
 auto-invokes a skill or an agent.
 
-When you're ready for **stage 2**, delete these lines from `permissions.deny` in
-`.claude/settings.json` and reload the window (Cmd/Ctrl-Shift-P -> Developer: Reload
-Window):
+**Enable stage 2** (skills + `CLAUDE.md`, still MCP-only) with two edits, then reload
+the window (Cmd/Ctrl-Shift-P -> Developer: Reload Window):
 
-```json
-"mcp__playwright-test",
-"Skill",
-"Agent(playwright-test-planner)",
-"Agent(playwright-test-generator)",
-"Agent(playwright-test-healer)",
-```
+1. Delete the `"Skill"` line from `permissions.deny` in `.claude/settings.json`.
+2. Rename `CLAUDE.stage2.md` -> `CLAUDE.md`.
 
-Skills, the Test Agents, and their `playwright-test` MCP then come online. Notes:
+The eight skills + `CLAUDE.md` come online; the browser MCP stays on. Notes:
 - `deny` beats `allow` and cannot be undone from `settings.local.json`, so enabling
-  stage 2 really does mean editing `settings.json` (delete the five lines).
-- The general `playwright` MCP stays on the whole time; skills, the three agents, and
-  the `playwright-test` MCP are what get gated.
+  stage 2 really does mean editing `settings.json`.
+- The Test Agents + their `playwright-test` MCP stay denied - they are a **later
+  stage**. Turn them on by also deleting the `Agent(...)` and `mcp__playwright-test`
+  lines.
 
 The full stage-1 exercise set - instructor-led demos, a bunch of attendee exercises,
 and a capabilities checklist covering the whole MCP toolset - is in
@@ -90,47 +85,37 @@ and a capabilities checklist covering the whole MCP toolset - is in
 [`exercises/stage-1-answer-key.md`](exercises/stage-1-answer-key.md). The two MCP
 servers (general vs test) are compared in [`MCP_SERVERS.md`](MCP_SERVERS.md).
 
+The **stage-2 refactor exercises** - turning generic AI-written tests into house style
+with the skills + `CLAUDE.md` - are in
+[`exercises/stage-2-refactor.md`](exercises/stage-2-refactor.md). That file leans on
+`playwright-locators` + `test-craftsmanship`; the **skill labs** in
+[`exercises/stage-2-skill-labs.md`](exercises/stage-2-skill-labs.md) give each other
+skill its own lab (debugging, bug-hunting, network mocking, API, fixtures/isolation, a
+craftsmanship review) - one instructor demo + attendee tasks apiece, grounded in the
+app's planted bugs.
+
 ## Suggested 3-hour session flow
 
 | Block            | Time | Focus                                                      | Skill(s)                    |
 | ---------------- | ---- | ---------------------------------------------------------- | --------------------------- |
 | Warm-up          | 15m  | Run the suite, open `--ui`, walk through the login test    | none                        |
-| CLI + snapshots  | 20m  | Drive the live app with `playwright-cli`; read a snapshot  | `playwright-cli`            |
+| MCP + snapshots  | 20m  | Drive the live app with the browser MCP; read a snapshot   | `playwright-mcp-workflow`   |
 | Locators + actions | 30m | Role/label > CSS; extract flows into `src/actions` functions - no page objects | `playwright-locators`, `test-craftsmanship` |
 | Fixtures + auth  | 25m  | The `app` fixture as DI; storage-state to skip UI login    | `playwright-fixtures-auth`  |
 | Break            | 10m  |                                                            |                             |
 | Debugging        | 20m  | Trace viewer, `--debug`, `page.pause` - fix a planted bug  | `playwright-debugging`      |
 | Bug hunting      | 25m  | Find the broken Desk Lamp image; add a console-error guard | `playwright-bug-hunting`    |
 | Network mocking  | 20m  | Force empty inventory; HAR record/replay                   | `playwright-network-mocking`|
-| **AI segment**   | 25m  | Planner → Generator → Healer on the inventory feature      | `playwright-mcp-workflow`   |
+| **Refactor**     | 25m  | Generic AI test -> house style with skills + `CLAUDE.md`   | all authoring skills        |
 | Wrap             | 10m  | Q&A, where to go next                                      |                             |
 
 ## Exercises
 
-### CLI + snapshots (`playwright-cli`)
-
-```bash
-playwright-cli open https://playwright-workshop.pages.dev/login
-playwright-cli fill "getByLabel('Username')" standard_user
-playwright-cli fill "getByLabel('Password')" workshop123
-playwright-cli click "getByRole('button', { name: 'Sign in' })"
-playwright-cli snapshot            # read the accessibility tree of /inventory
-playwright-cli close
-```
-
-> Note: the standalone `playwright-cli` defaults `getByTestId` to `data-testid`, but
-> this app tags with **`data-test`** - so use `getByLabel` / `getByRole` (above) or a
-> CSS `[data-test=username]` selector in the CLI. (The MCP server and the test runner
-> read `testIdAttribute: 'data-test'` from the config, so `getByTestId` works there.)
-
-Discuss: the snapshot is structured (roles + names) - that's exactly what good
-locators target. Compare to a screenshot.
-
 ### Locators + actions
 
-`tests/login.spec.ts` already reads as intent - `login(app, ...)` then web-first
-assertions on `app.heading(...)`, no page objects. Extend `src/actions` and
-`src/app.ts` to cover inventory:
+A house-style login spec reads as intent - `login(app, ...)` then web-first
+assertions on `app.heading(...)`, no page objects. Build `src/actions` and
+`src/app.ts`, then cover inventory:
 
 1. Add `addToCart(app, productName)` and `sortBy(app, option)` functions in
    `src/actions/` (reuse `app.page`; a click by `data-test` is fine inside an action).
@@ -145,7 +130,7 @@ assertions on `app.heading(...)`, no page objects. Extend `src/actions` and
 
 ### Fixtures + auth
 
-The `app` fixture already composes `page`/`request` and injects a ready seam - that is
+Your `app` fixture composes `page`/`request` and injects a ready seam - that is
 Dependency Injection. Now make login cheap:
 1. Sign in once, save `playwright/.auth/user.json`, and set `use.storageState` so specs
    start already authenticated.
@@ -155,7 +140,7 @@ Dependency Injection. Now make login cheap:
 
 ### Debugging
 
-Plant a bug: change the expected heading to `'Product'` in `login.spec.ts`. Run
+Plant a bug: change the expected heading to `'Product'` in your login spec. Run
 with `npm run test:ui`. Have attendees identify the failing step from the
 time-travel view *without* reading the error text. Then fix it.
 
@@ -195,7 +180,11 @@ assert through the UI. (This app's login is client-side, so there's no
 `/api/login` to seed against - a good talking point about what is and isn't
 API-drivable.)
 
-## AI segment - Planner → Generator → Healer
+## AI segment - Planner → Generator → Healer (later stage)
+
+> **Deferred.** The Test Agents and their `run-test-mcp-server` are gated off in stages
+> 1-2. Turn them on in a later stage (delete the `Agent(...)` + `mcp__playwright-test`
+> lines in `.claude/settings.json`). The rest of this section previews that stage.
 
 The headline demo. In the Claude Code panel:
 

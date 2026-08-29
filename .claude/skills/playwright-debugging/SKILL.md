@@ -1,6 +1,6 @@
 ---
 name: playwright-debugging
-description: Unblock a failing or hard-to-author Playwright test - UI mode, codegen, trace viewer, Inspector, page.pause(), failure artifacts. Use whenever a test fails mysteriously, when you need to discover a locator, or when stepping through a flow.
+description: Covers the Playwright debugging toolchain to unblock a failing or hard-to-author test - UI mode, codegen, trace viewer, Inspector, page.pause(), failure artifacts. Use whenever a test fails mysteriously, when you need to discover a locator, or when stepping through a flow.
 ---
 
 # Debugging Playwright

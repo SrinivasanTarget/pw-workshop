@@ -13,7 +13,18 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: 'html',
+  /*
+   * html for humans, json for the triage agent (Module 9). The json reporter
+   * embeds each test's attachments — including network-failures.txt from
+   * tests/fixtures.ts — so the agent reads network evidence straight from the
+   * report file. In CI, upload test-results/results.json as an artifact for the
+   * triage job to consume. The heal graph overrides this with `--reporter=json`
+   * on the CLI, so its flow is unaffected.
+   */
+  reporter: [
+    ['html'],
+    ['json', { outputFile: 'test-results/results.json' }],
+  ],
   use: {
     baseURL: BASE_URL,
 

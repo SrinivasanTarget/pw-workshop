@@ -5,6 +5,7 @@ import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { ChatAnthropic } from "@langchain/anthropic";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { tool, type StructuredToolInterface } from "@langchain/core/tools";
+import { OutputParserException } from "@langchain/core/output_parsers";
 import { z } from "zod";
 import { APP_BASE_URL, MODEL, REPO_ROOT } from "./config.js";
 import {
@@ -32,6 +33,39 @@ const testPlanSchema = z.object({
 });
 
 export type TestScenario = z.infer<typeof scenarioSchema>;
+
+/** The model occasionally double-encodes the planner's structured output —
+ *  returning the whole `{"scenarios": [...]}` object as a JSON string inside
+ *  the "scenarios" field instead of the array itself. Unwrap that specific
+ *  shape before giving up on the tool call. */
+function recoverTestPlan(err: unknown): z.infer<typeof testPlanSchema> {
+  if (!(err instanceof OutputParserException) || typeof err.llmOutput !== "string") {
+    throw err;
+  }
+
+  let candidate: unknown;
+  try {
+    candidate = JSON.parse(err.llmOutput);
+  } catch {
+    throw err;
+  }
+
+  if (
+    candidate &&
+    typeof candidate === "object" &&
+    typeof (candidate as Record<string, unknown>).scenarios === "string"
+  ) {
+    try {
+      candidate = JSON.parse((candidate as Record<string, string>).scenarios);
+    } catch {
+      throw err;
+    }
+  }
+
+  const result = testPlanSchema.safeParse(candidate);
+  if (!result.success) throw err;
+  return result.data;
+}
 
 // ---------------------------------------------------------------------------
 // Graph state
@@ -108,12 +142,17 @@ export function buildGraph(
     const planner = model.withStructuredOutput(testPlanSchema, {
       name: "test_plan",
     });
-    const plan = await planner.invoke([
-      new SystemMessage(PLANNER_SYSTEM_PROMPT),
-      new HumanMessage(
-        `Jira ticket ${state.issueKey}:\n\n${state.issueDetails}`
-      ),
-    ]);
+    let plan: z.infer<typeof testPlanSchema>;
+    try {
+      plan = await planner.invoke([
+        new SystemMessage(PLANNER_SYSTEM_PROMPT),
+        new HumanMessage(
+          `Jira ticket ${state.issueKey}:\n\n${state.issueDetails}`
+        ),
+      ]);
+    } catch (err) {
+      plan = recoverTestPlan(err);
+    }
     console.log(
       `[plan_tests] ${plan.scenarios.length} scenario(s): ` +
         plan.scenarios.map((s) => s.name).join(" | ") +

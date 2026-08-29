@@ -1,6 +1,6 @@
 import { test as base, expect } from '@playwright/test';
 import { createApp, type App } from '../src/app';
-import { login, type Credentials } from '../src/actions/login';
+import { login, visitInventory, type Credentials } from '../src/actions/login';
 import {
   addToCart,
   addItems,
@@ -29,6 +29,7 @@ import {
   expectRequiredFieldError,
   expectNoFieldError,
 } from '../src/expectations/checkout';
+import { expectRedirectedToLogin } from '../src/expectations/login';
 import type { Product } from '../src/catalog';
 
 /**
@@ -42,6 +43,7 @@ import type { Product } from '../src/catalog';
 function createShop(app: App) {
   return {
     login: (credentials?: Credentials) => login(app, credentials),
+    visitInventory: () => visitInventory(app),
     addToCart: (productId: string) => addToCart(app, productId),
     addItems: (products: readonly Product[]) => addItems(app, products),
     openCart: () => openCart(app),
@@ -69,6 +71,7 @@ function createVerify(app: App) {
     stillOnCheckout: () => expectStillOnCheckout(app),
     requiredFieldError: (field: ShippingField) => expectRequiredFieldError(app, field),
     noFieldError: (field: ShippingField) => expectNoFieldError(app, field),
+    redirectedToLogin: () => expectRedirectedToLogin(app),
   };
 }
 
